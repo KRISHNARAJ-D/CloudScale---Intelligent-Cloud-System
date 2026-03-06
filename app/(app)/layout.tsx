@@ -24,6 +24,7 @@ import {
     Home,
     LogOut,
 } from "lucide-react";
+import { ModernLogo } from "../components/ModernLogo";
 
 const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: <BarChart3 size={17} /> },
@@ -128,8 +129,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                 {/* Logo */}
                 <div style={{ height: 68, display: "flex", alignItems: "center", padding: sidebarOpen ? "0 1.25rem" : "0", justifyContent: sidebarOpen ? "flex-start" : "center", borderBottom: "1px solid rgba(255,255,255,0.05)", gap: "0.625rem", flexShrink: 0 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 9, background: "linear-gradient(135deg,#4f46e5,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}>
-                        <CloudLightning size={19} color="#fff" />
+                    <div style={{ padding: 4, width: 34, height: 34, borderRadius: 9, background: "linear-gradient(135deg,#4f46e5,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}>
+                        <ModernLogo size={22} color="#fff" />
                     </div>
                     {sidebarOpen && (
                         <span style={{ fontWeight: 800, fontSize: "1rem", color: "#fff", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>

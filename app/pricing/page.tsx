@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { CloudLightning, CheckCircle2, Zap, ArrowRight, Shield, Heart } from "lucide-react";
+import { ModernLogo } from "../components/ModernLogo";
 
 export default function PricingPage() {
     return (
@@ -10,8 +11,8 @@ export default function PricingPage() {
             {/* NAV */}
             <nav style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 2rem", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(15,23,42,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
                 <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none" }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <CloudLightning size={17} color="#fff" />
+                    <div style={{ padding: 4, width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <ModernLogo size={20} color="#fff" />
                     </div>
                     <span style={{ fontWeight: 800, fontSize: "1rem", color: "#fff" }}>CloudScale <span style={{ color: "#A5B4FC" }}>Genius</span></span>
                 </Link>

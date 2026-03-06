@@ -7,6 +7,7 @@ import {
     CheckCircle2, ArrowRight, CloudLightning, Zap, Users,
     ShieldCheck, Loader2, ChevronRight, BarChart3, Database,
 } from "lucide-react";
+import { ModernLogo } from "../components/ModernLogo";
 
 const clouds = [
     { name: "AWS CloudWatch", sub: "Read-only IAM metric access", icon: <Zap size={22} color="#818cf8" /> },
@@ -49,8 +50,8 @@ export default function OnboardingPage() {
 
                 {/* Logo */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.625rem", marginBottom: "3rem" }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg,#4f46e5,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(99,102,241,.35)" }}>
-                        <CloudLightning size={20} color="#fff" />
+                    <div style={{ padding: 5, width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg,#4f46e5,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(99,102,241,.35)" }}>
+                        <ModernLogo size={24} color="#fff" />
                     </div>
                     <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "#fff", letterSpacing: "-0.02em" }}>
                         CloudScale <span style={{ color: "#a5b4fc" }}>Genius</span>

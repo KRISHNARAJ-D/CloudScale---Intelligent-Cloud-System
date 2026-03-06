@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import { ModernLogo } from "./components/ModernLogo";
 import {
     CloudLightning, UploadCloud, Zap, BarChart3, Shield, Download,
     CheckCircle2, ArrowRight, ChevronRight, Menu, X, Users, Globe,
@@ -67,7 +68,7 @@ export default function LandingPage() {
                 {/* Logo */}
                 <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none" }}>
                     <div style={{ width: 34, height: 34, borderRadius: 9, background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(99,102,241,0.35)" }}>
-                        <CloudLightning size={18} color="#fff" />
+                        <ModernLogo size={22} color="#fff" />
                     </div>
                     <span style={{ fontWeight: 800, fontSize: "1rem", color: "#fff", letterSpacing: "-0.02em" }}>
                         CloudScale <span style={{ color: "#A5B4FC" }}>Genius</span>
@@ -317,7 +318,7 @@ export default function LandingPage() {
                     <div>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.875rem" }}>
                             <div style={{ width: 30, height: 30, borderRadius: 8, background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                <CloudLightning size={15} color="#fff" />
+                                <ModernLogo size={18} color="#fff" />
                             </div>
                             <span style={{ fontWeight: 800, fontSize: "0.9rem", color: "#fff" }}>CloudScale <span style={{ color: "#A5B4FC" }}>Genius</span></span>
                         </div>

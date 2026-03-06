@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { SignUp } from "@clerk/nextjs";
+import { ModernLogo } from "../../components/ModernLogo";
 import { CloudLightning, Shield, Zap, BarChart3, ArrowLeft, Moon, Sun } from "lucide-react";
 import Link from "next/link";
 
@@ -92,8 +93,8 @@ export default function SignUpPage() {
 
                 {/* Brand header */}
                 <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-                    <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: 16, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", boxShadow: "0 8px 24px rgba(99,102,241,0.4)", marginBottom: "1.25rem" }}>
-                        <CloudLightning size={26} color="#fff" />
+                    <div style={{ padding: 6, display: "inline-flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: 16, background: "linear-gradient(135deg, #6366F1, #8B5CF6)", boxShadow: "0 8px 24px rgba(99,102,241,0.4)", marginBottom: "1.25rem" }}>
+                        <ModernLogo size={32} color="#fff" />
                     </div>
                     <h1 style={{ fontSize: "1.875rem", fontWeight: 800, color: t.textPrimary, letterSpacing: "-0.03em", margin: 0, marginBottom: "0.375rem" }}>
                         Create your account
