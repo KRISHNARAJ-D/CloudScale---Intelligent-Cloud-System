@@ -109,8 +109,8 @@ export default function LandingPage() {
                     </h1>
 
                     {/* Subheadline Elaborated */}
-                    <p style={{ fontSize: "1.125rem", color: "#94A3B8", maxWidth: 680, margin: "0 auto 2rem", lineHeight: 1.6, fontWeight: 400 }}>
-                        CloudScale Genius deeply analyzes your multi-cloud infrastructure to instantly reveal hidden inefficiencies, completely eliminating cloud waste without requiring intrusive IAM agents.
+                    <p style={{ fontSize: "1.15rem", color: "#CBD5E1", maxWidth: 600, margin: "0 auto 2.25rem", lineHeight: 1.6, fontWeight: 400, letterSpacing: "-0.01em" }}>
+                        Optimize your multi-cloud infrastructure with pinpoint accuracy. Eliminate hidden waste instantly—no complex setup or IAM agents required.
                     </p>
 
                     {/* Pro-Tags Grid */}
