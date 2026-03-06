@@ -68,7 +68,7 @@ function classifyResource(avgCpu: number, avgMem: number): { status: ParsedResou
     return { status: "Optimal", action: "none", savingsPct: 0 };
 }
 
-function buildTimeline(rows: Record<string, string>[], cpuCol: string, memCol: string, timeCol: string): { d: string; cpu: number; mem: number }[] {
+function buildTimeline(rows: Record<string, any>[], cpuCol: string, memCol: string, timeCol: string): { d: string; cpu: number; mem: number }[] {
     // Group by day-of-hour buckets, build a 7-point timeline
     const buckets: number[][] = Array.from({ length: 7 }, () => []);
     const memBuckets: number[][] = Array.from({ length: 7 }, () => []);
@@ -234,7 +234,7 @@ export function parseCSV(text: string, provider: string, analysisName: string): 
                 ...r,
                 cpu_utilization: String(r.__cpuPct),
                 memory_utilization: String(r.__memPct)
-            })) as any[],
+            })),
             "cpu_utilization",
             "memory_utilization",
             timeCol
