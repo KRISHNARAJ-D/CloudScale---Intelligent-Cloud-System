@@ -226,7 +226,7 @@ export default function AnalysisResultPage() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
                                 <XAxis dataKey="d" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
                                 <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} domain={[0, 100]} />
-                                <Tooltip contentStyle={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`${v}%`]} />
+                                <Tooltip contentStyle={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} formatter={(v: any) => [`${v}%`]} />
                                 <Area type="monotone" dataKey="cpu" name="CPU Utilization" stroke="#6366F1" strokeWidth={3} fill="url(#colorCpu)" />
                                 <Area type="monotone" dataKey="mem" name="Memory Utilization" stroke="#10B981" strokeWidth={3} fill="url(#colorMem)" />
                             </AreaChart>
@@ -246,7 +246,7 @@ export default function AnalysisResultPage() {
                                 <Pie data={result.costBreakdown} innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="val">
                                     {result.costBreakdown.map((e, i) => <Cell key={i} fill={e.color} stroke="rgba(0,0,0,0.5)" strokeWidth={2} />)}
                                 </Pie>
-                                <Tooltip contentStyle={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`$${v.toLocaleString()}`, "Cost"]} />
+                                <Tooltip contentStyle={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} formatter={(v: any) => [`$${Number(v).toLocaleString()}`, "Cost"]} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
