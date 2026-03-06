@@ -73,32 +73,54 @@ export default function LandingPage() {
             </nav>
 
             {/* 2. Hero Section */}
-            <section style={{ padding: "100px 0", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", top: "10%", left: "50%", transform: "translateX(-50%)", width: "80%", height: "80%", background: "radial-gradient(ellipse at top, rgba(99,102,241,0.15) 0%, transparent 60%)", pointerEvents: "none" }} />
-                <div className="bg-grid-pattern" style={{ position: "absolute", inset: 0, opacity: 0.4, pointerEvents: "none" }} />
+            <section style={{ padding: "140px 0 100px", position: "relative", overflow: "hidden" }}>
+                {/* Advanced Glowing Background Elements */}
+                <div style={{ position: "absolute", top: "-15%", left: "30%", width: "40%", height: "80%", background: "radial-gradient(ellipse, rgba(99,102,241,0.25) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+                <div style={{ position: "absolute", top: "10%", right: "15%", width: "35%", height: "65%", background: "radial-gradient(ellipse, rgba(139,92,246,0.15) 0%, transparent 65%)", pointerEvents: "none", zIndex: 0 }} />
+                <div className="bg-grid-pattern" style={{ position: "absolute", inset: 0, opacity: 0.6, pointerEvents: "none", maskImage: "linear-gradient(to bottom, black 30%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 30%, transparent 100%)", zIndex: 0 }} />
 
                 <div className="container" style={{ position: "relative", textAlign: "center", zIndex: 10 }}>
-                    <h1 style={{ fontSize: "clamp(3rem, 6vw, 4.5rem)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: "1.5rem", maxWidth: 900, margin: "0 auto 1.5rem" }}>
-                        Control Your Cloud Costs<br />
-                        <span style={{ background: "linear-gradient(135deg,#818CF8,#C4B5FD)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>with AI Precision</span>
-                    </h1>
-                    <p style={{ fontSize: "1.25rem", color: "#94A3B8", maxWidth: 660, margin: "0 auto 2.5rem", lineHeight: 1.6 }}>
-                        CloudScale Genius analyzes your infrastructure and reveals hidden cost savings automatically.
-                    </p>
 
-                    <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem", flexWrap: "wrap", marginBottom: "3rem", color: "#CBD5E1", fontSize: "0.95rem" }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}><CheckCircle2 size={16} color="#34D399" /> Detect wasted cloud resources</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}><CheckCircle2 size={16} color="#34D399" /> AI-driven cost optimization</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}><CheckCircle2 size={16} color="#34D399" /> Real-time infrastructure insights</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}><CheckCircle2 size={16} color="#34D399" /> Built for DevOps & FinOps</span>
+                    {/* SaaS Trust Banner */}
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", padding: "0.375rem 1.25rem", borderRadius: 999, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.25)", color: "#A5B4FC", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "2.5rem", backdropFilter: "blur(8px)" }}>
+                        <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, background: "#6366F1", borderRadius: "50%" }}>
+                            <Shield size={10} color="#fff" />
+                        </span>
+                        Used by modern engineering teams
                     </div>
 
-                    <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-                        <Link href="/dashboard" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "1.125rem 2.5rem", borderRadius: "0.75rem", fontSize: "1.1rem" }}>
-                            Start Optimizing Cloud Costs <ArrowRight size={18} />
+                    {/* Elaborate Headline */}
+                    <h1 style={{ fontSize: "clamp(3.5rem, 7vw, 5.5rem)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: "1.75rem", maxWidth: 1000, margin: "0 auto 1.75rem" }}>
+                        Control Your Cloud Costs<br />
+                        <span style={{ background: "linear-gradient(135deg, #A5B4FC 0%, #C4B5FD 50%, #FBCFE8 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>with AI Precision</span>
+                    </h1>
+
+                    {/* Subheadline Elaborated */}
+                    <p style={{ fontSize: "1.25rem", color: "#94A3B8", maxWidth: 720, margin: "0 auto 3rem", lineHeight: 1.7, fontWeight: 400 }}>
+                        CloudScale Genius deeply analyzes your multi-cloud infrastructure to instantly reveal hidden inefficiencies, completely eliminating cloud waste without requiring intrusive IAM agents.
+                    </p>
+
+                    {/* Pro-Tags Grid */}
+                    <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap", marginBottom: "3.5rem", maxWidth: 840, margin: "0 auto 3.5rem" }}>
+                        {[
+                            "Detect wasted cloud resources",
+                            "AI-driven cost optimization",
+                            "Real-time infrastructure insights",
+                            "Built for DevOps & FinOps teams"
+                        ].map((tag) => (
+                            <span key={tag} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", padding: "0.6rem 1rem", borderRadius: "0.75rem", fontSize: "0.9rem", color: "#CBD5E1", fontWeight: 500, letterSpacing: "-0.01em" }}>
+                                <CheckCircle2 size={16} color="#34D399" /> {tag}
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* Elaborate Button Group */}
+                    <div style={{ display: "flex", gap: "1.25rem", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
+                        <Link href="/dashboard" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "1.25rem 2.5rem", borderRadius: "0.875rem", fontSize: "1.125rem", boxShadow: "0 8px 32px rgba(99,102,241,0.4)" }}>
+                            Start Optimizing Cloud Costs <ArrowRight size={18} strokeWidth={2.5} />
                         </Link>
-                        <Link href="/dashboard" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "1.125rem 2.5rem", borderRadius: "0.75rem", fontSize: "1.1rem" }}>
-                            See Live Dashboard
+                        <Link href="/dashboard" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "1.25rem 2.5rem", borderRadius: "0.875rem", fontSize: "1.125rem" }}>
+                            <Zap size={18} color="#A5B4FC" /> See Live Dashboard
                         </Link>
                     </div>
                 </div>
