@@ -230,7 +230,11 @@ export function parseCSV(text: string, provider: string, analysisName: string): 
         });
         // Build pseudo-rows for timeline
         utilizationTimeline = buildTimeline(
-            cpuSeries.map(r => ({ ...r, cpu_utilization: String(r.__cpuPct), memory_utilization: String(r.__memPct) })),
+            cpuSeries.map(r => ({
+                ...r,
+                cpu_utilization: String(r.__cpuPct),
+                memory_utilization: String(r.__memPct)
+            })) as any[],
             "cpu_utilization",
             "memory_utilization",
             timeCol
