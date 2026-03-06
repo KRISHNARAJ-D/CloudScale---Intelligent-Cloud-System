@@ -119,7 +119,7 @@ export default function SignInPage() {
                     background: t.cardBg,
                     border: `1px solid ${t.border}`,
                     borderRadius: "1.5rem",
-                    padding: "0.25rem",
+                    padding: "1rem",
                     boxShadow: darkMode
                         ? "0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)"
                         : "0 25px 60px rgba(15,23,42,0.12), 0 0 0 1px rgba(99,102,241,0.06)",
@@ -129,7 +129,8 @@ export default function SignInPage() {
                         appearance={{
                             elements: {
                                 rootBox: { width: "100%", fontFamily: "'Inter', system-ui, sans-serif" },
-                                card: { background: "transparent", border: "none", boxShadow: "none", padding: "1.5rem 1.75rem 1.75rem", borderRadius: 0, gap: "1.25rem" },
+                                cardBox: { background: "transparent", boxShadow: "none" },
+                                card: { background: "transparent", border: "none", boxShadow: "none", padding: "1rem", borderRadius: 0, gap: "1.25rem" },
                                 header: { display: "none" }, // We use our own header above
                                 headerTitle: { display: "none" },
                                 headerSubtitle: { display: "none" },
