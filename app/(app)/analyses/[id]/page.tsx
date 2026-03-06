@@ -2,77 +2,61 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, CheckCircle2, TrendingDown, DollarSign, Database, Server, Download, Shield, LayoutList, Check, Copy, FileText, FileJson, Code } from "lucide-react";
+import { ArrowLeft, CheckCircle2, TrendingDown, DollarSign, Database, Server, Download, Shield, Copy, FileText, FileJson, Code, AlertTriangle } from "lucide-react";
 import { AreaChart, Area, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 import { addAuditLog } from "../../utils";
+import type { AnalysisResult, ParsedResource } from "../csvParser";
+
+const actionLabel: Record<string, string> = {
+    downgrade_instance: "Downgrade Instance",
+    terminate_instance: "Terminate Instance",
+    resize_pod: "Resize Pod",
+    none: "No Action",
+};
+
+const statusColor: Record<string, string> = {
+    "Optimal": "#34D399",
+    "Over-provisioned": "#FBBF24",
+    "Idle Waste": "#FB7185",
+    "Critical": "#F97316",
+};
+
+const statusBg: Record<string, string> = {
+    "Optimal": "rgba(16,185,129,0.1)",
+    "Over-provisioned": "rgba(251,191,36,0.1)",
+    "Idle Waste": "rgba(244,63,94,0.15)",
+    "Critical": "rgba(249,115,22,0.15)",
+};
 
 export default function AnalysisResultPage() {
     const params = useParams();
     const router = useRouter();
     const searchParams = useSearchParams();
     const id = params?.id as string;
-    const providerParam = searchParams?.get("provider") || "aws"; // fallback
+    const providerParam = searchParams?.get("provider") || "aws";
+
+    const [result, setResult] = useState<AnalysisResult | null>(null);
+    const [notFound, setNotFound] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [copied, setCopied] = useState(false);
 
-    // Mock interactive data
-    const breakdown = [
-        { name: "Compute", val: 5400, color: "#6366F1" },
-        { name: "Database", val: 2100, color: "#EC4899" },
-        { name: "Storage", val: 1200, color: "#10B981" },
-        { name: "Network", val: 800, color: "#F59E0B" }
-    ];
-
-    const utilization = [
-        { d: "Mon", cpu: 40, mem: 60 },
-        { d: "Tue", cpu: 30, mem: 55 },
-        { d: "Wed", cpu: 65, mem: 75 },
-        { d: "Thu", cpu: 90, mem: 80 },
-        { d: "Fri", cpu: 85, mem: 78 },
-        { d: "Sat", cpu: 20, mem: 65 },
-        { d: "Sun", cpu: 15, mem: 60 },
-    ];
-
-    const nodes = [
-        { id: "i-0abcd1234ef", role: "Frontend API", size: "t3.xlarge", util: "12%", status: "Over-provisioned" },
-        { id: "i-0xyzw9876ab", role: "Worker Node", size: "m5.large", util: "8%", status: "Idle Waste" },
-        { id: "i-0klmn5432cd", role: "Redis Cache", size: "r5.2xlarge", util: "92%", status: "Optimal" },
-    ];
+    useEffect(() => {
+        const stored = sessionStorage.getItem(`analysis_${id}`);
+        if (stored) {
+            try {
+                setResult(JSON.parse(stored));
+            } catch {
+                setNotFound(true);
+            }
+        } else {
+            setNotFound(true);
+        }
+    }, [id]);
 
     const applyFix = () => {
         setSaved(true);
         addAuditLog(`Applied ${id} optimization configuration to target active instances`, "system");
-        setTimeout(() => setSaved(false), 2000);
-    };
-
-    const [copied, setCopied] = useState(false);
-
-    const exportData = {
-        optimization: {
-            provider: providerParam,
-            recommendations: nodes.map(n => ({
-                resource: n.role,
-                resource_id: n.id,
-                action: n.status.toLowerCase().includes("over") ? "downgrade_instance" : n.status.includes("Idle") ? "terminate_instance" : "none",
-                estimated_savings: n.role.includes("API") ? "$340/month" : n.role.includes("Worker") ? "$120/month" : "$0/month"
-            }))
-        }
-    };
-
-    const getYAML = () => {
-        let y = `optimization:\n  provider: ${providerParam}\n  recommendations:\n`;
-        exportData.optimization.recommendations.forEach(r => {
-            y += `    - resource: ${r.resource}\n`;
-            y += `      action: ${r.action}\n`;
-            y += `      estimated_savings: ${r.estimated_savings}\n`;
-        });
-        return y;
-    };
-
-    const handleCopyYAML = () => {
-        navigator.clipboard.writeText(getYAML());
-        addAuditLog(`Copied raw generated YAML config for ${id}`, "data");
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setTimeout(() => setSaved(false), 2500);
     };
 
     const downloadFile = (content: string, filename: string, mimeType: string) => {
@@ -87,15 +71,41 @@ export default function AnalysisResultPage() {
         URL.revokeObjectURL(url);
     };
 
+    const getYAML = () => {
+        if (!result) return "";
+        let y = `optimization:\n  provider: ${result.provider}\n  analysis_id: ${id}\n  total_monthly_cost: $${result.totalMonthlyCost}/month\n  estimated_savings: $${result.totalSavings}/month\n  waste_percent: ${result.wastePercent}%\n  recommendations:\n`;
+        result.resources.filter(r => r.action !== "none").forEach(r => {
+            y += `    - resource: ${r.id}\n`;
+            y += `      role: ${r.role}\n`;
+            y += `      action: ${r.action}\n`;
+            y += `      avg_cpu_utilization: ${r.avgCpu}%\n`;
+            y += `      avg_memory_utilization: ${r.avgMemory}%\n`;
+            y += `      estimated_savings: $${r.estimatedSavings}/month\n`;
+        });
+        if (result.resources.filter(r => r.action === "none").length > 0) {
+            y += `  optimal_resources:\n`;
+            result.resources.filter(r => r.action === "none").forEach(r => {
+                y += `    - resource: ${r.id}\n`;
+                y += `      role: ${r.role}\n`;
+                y += `      status: ${r.status}\n`;
+            });
+        }
+        return y;
+    };
+
+    const handleCopyYAML = () => {
+        navigator.clipboard.writeText(getYAML());
+        addAuditLog(`Copied raw generated YAML config for ${id}`, "data");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     const exportCSV = () => {
-        const headers = ["Resource Name", "Cloud Provider", "Resource Type", "Monthly Cost", "Optimization Recommendation", "Potential Savings"];
-        const rows = nodes.map(n => [
-            n.role,
-            providerParam.toUpperCase(),
-            n.size,
-            n.role.includes("API") ? "$1,200" : "$800",
-            n.status,
-            n.role.includes("API") ? "$340/mo" : n.role.includes("Worker") ? "$120/mo" : "$0"
+        if (!result) return;
+        const headers = ["Resource ID", "Role", "Cloud Provider", "Resource Type", "Avg CPU %", "Avg Memory %", "Monthly Cost ($)", "Status", "Recommended Action", "Potential Savings ($)"];
+        const rows = result.resources.map(r => [
+            r.id, r.role, result.provider.toUpperCase(), r.type,
+            r.avgCpu, r.avgMemory, r.monthlyCost, r.status, r.action, r.estimatedSavings
         ]);
         const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
         downloadFile(csvContent, `analysis-${id}-results.csv`, "text/csv");
@@ -103,7 +113,8 @@ export default function AnalysisResultPage() {
     };
 
     const exportJSON = () => {
-        downloadFile(JSON.stringify(exportData, null, 2), `analysis-${id}-results.json`, "application/json");
+        if (!result) return;
+        downloadFile(JSON.stringify(result, null, 2), `analysis-${id}-results.json`, "application/json");
         addAuditLog(`Downloaded JSON configuration for ${id}`, "data");
     };
 
@@ -112,36 +123,71 @@ export default function AnalysisResultPage() {
         addAuditLog(`Downloaded YAML configuration for ${id}`, "data");
     };
 
+    // ---- Loading / Not found states ----
+    if (notFound) {
+        return (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, gap: "1.5rem", color: "#94A3B8" }}>
+                <AlertTriangle size={48} color="#FBBF24" />
+                <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#F8FAFC" }}>Analysis not found</h2>
+                <p style={{ fontSize: "0.9rem", textAlign: "center", maxWidth: 420 }}>
+                    This result may have expired from the session, or you navigated here directly. Please upload a new CSV to run a fresh analysis.
+                </p>
+                <button
+                    onClick={() => router.push("/analyses/new")}
+                    style={{ padding: "0.75rem 2rem", background: "linear-gradient(135deg,#6366F1,#4F46E5)", border: "none", borderRadius: "0.75rem", color: "#fff", fontWeight: 700, cursor: "pointer" }}
+                >
+                    ← New Analysis
+                </button>
+            </div>
+        );
+    }
+
+    if (!result) {
+        return (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 400, color: "#94A3B8", fontSize: "1rem" }}>
+                Loading analysis results…
+            </div>
+        );
+    }
+
+    const actionableResources = result.resources.filter(r => r.action !== "none");
+
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem", paddingBottom: "4rem" }}>
 
-            {/* Header / Navigate Back */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <button onClick={() => router.back()} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#F8FAFC", cursor: "pointer", transition: "all .2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}>
+                    <button
+                        onClick={() => router.back()}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#F8FAFC", cursor: "pointer", transition: "all .2s" }}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                    >
                         <ArrowLeft size={18} />
                     </button>
                     <div>
-                        <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#F8FAFC", letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>Results: {id}</h1>
+                        <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#F8FAFC", letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>
+                            {result.analysisName || `Results: ${id}`}
+                        </h1>
                         <p style={{ color: "#94A3B8", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#10B981" }} /> Analysis Complete · High Confidence
+                            <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: "#10B981" }} />
+                            Analysis Complete · Provider: <strong style={{ color: "#A5B4FC" }}>{result.provider.toUpperCase()}</strong> · {result.resources.length} Resources Detected
                         </p>
                     </div>
                 </div>
-                <div style={{ display: "flex", gap: "0.75rem" }}>
-                    <button onClick={exportCSV} style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.6rem", color: "#F8FAFC", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", transition: "background .2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}>
-                        <Download size={14} /> Export CSV
-                    </button>
-                </div>
+                <button onClick={exportCSV} style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.6rem", color: "#F8FAFC", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", transition: "background .2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}>
+                    <Download size={14} /> Export CSV
+                </button>
             </div>
 
             {/* KPI Summary */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem" }}>
                 {[
-                    { title: "Current Total Cost", val: "$9,500/mo", icon: <DollarSign size={20} color="#F8FAFC" />, bg: "rgba(255,255,255,0.05)", tc: "#F8FAFC" },
-                    { title: "Estimated Savings", val: "$2,850/mo", icon: <TrendingDown size={20} color="#10B981" />, bg: "rgba(16,185,129,0.1)", tc: "#34D399" },
-                    { title: "Wasted Resources", val: "30.0%", icon: <Server size={20} color="#F43F5E" />, bg: "rgba(244,63,94,0.1)", tc: "#FB7185" },
-                    { title: "Optimization Score", val: "92 / 100", icon: <Shield size={20} color="#8B5CF6" />, bg: "rgba(139,92,246,0.1)", tc: "#A78BFA" }
+                    { title: "Total Monthly Cost", val: `$${result.totalMonthlyCost.toLocaleString()}/mo`, icon: <DollarSign size={20} color="#F8FAFC" />, bg: "rgba(255,255,255,0.05)", tc: "#F8FAFC" },
+                    { title: "Estimated Savings", val: `$${result.totalSavings.toLocaleString()}/mo`, icon: <TrendingDown size={20} color="#10B981" />, bg: "rgba(16,185,129,0.1)", tc: "#34D399" },
+                    { title: "Wasted Resources", val: `${result.wastePercent}%`, icon: <Server size={20} color="#F43F5E" />, bg: "rgba(244,63,94,0.1)", tc: "#FB7185" },
+                    { title: "Optimization Score", val: `${result.optimizationScore} / 100`, icon: <Shield size={20} color="#8B5CF6" />, bg: "rgba(139,92,246,0.1)", tc: "#A78BFA" },
                 ].map((k, i) => (
                     <div key={i} style={{ padding: "1.5rem", borderRadius: "1.25rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", gap: "1rem" }}>
                         <div style={{ width: 48, height: 48, borderRadius: 12, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -158,15 +204,15 @@ export default function AnalysisResultPage() {
             {/* Charts Row */}
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "1.5rem" }}>
 
-                {/* Resource Usage Area Chart */}
+                {/* CPU & Memory Utilization Chart */}
                 <div style={{ padding: "1.75rem", borderRadius: "1.25rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)" }}>
                     <div style={{ marginBottom: "1.5rem" }}>
                         <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC" }}>CPU & Memory Utilization</h3>
-                        <p style={{ fontSize: "0.8rem", color: "#64748B" }}>Analyzed based on last 7 days metrics</p>
+                        <p style={{ fontSize: "0.8rem", color: "#64748B" }}>Derived from uploaded CSV metrics</p>
                     </div>
                     <div style={{ height: 280 }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={utilization}>
+                            <AreaChart data={result.utilizationTimeline}>
                                 <defs>
                                     <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
@@ -179,8 +225,8 @@ export default function AnalysisResultPage() {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
                                 <XAxis dataKey="d" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} />
-                                <Tooltip contentStyle={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} />
+                                <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} domain={[0, 100]} />
+                                <Tooltip contentStyle={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`${v}%`]} />
                                 <Area type="monotone" dataKey="cpu" name="CPU Utilization" stroke="#6366F1" strokeWidth={3} fill="url(#colorCpu)" />
                                 <Area type="monotone" dataKey="mem" name="Memory Utilization" stroke="#10B981" strokeWidth={3} fill="url(#colorMem)" />
                             </AreaChart>
@@ -192,20 +238,20 @@ export default function AnalysisResultPage() {
                 <div style={{ padding: "1.75rem", borderRadius: "1.25rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column" }}>
                     <div style={{ marginBottom: "1rem" }}>
                         <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC" }}>Cost Breakdown</h3>
-                        <p style={{ fontSize: "0.8rem", color: "#64748B" }}>Distribution of current waste</p>
+                        <p style={{ fontSize: "0.8rem", color: "#64748B" }}>Distribution by category</p>
                     </div>
                     <div style={{ flex: 1, height: 200, minHeight: 200 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
-                                <Pie data={breakdown} innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="val">
-                                    {breakdown.map((e, i) => <Cell key={i} fill={e.color} stroke="rgba(0,0,0,0.5)" strokeWidth={2} />)}
+                                <Pie data={result.costBreakdown} innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="val">
+                                    {result.costBreakdown.map((e, i) => <Cell key={i} fill={e.color} stroke="rgba(0,0,0,0.5)" strokeWidth={2} />)}
                                 </Pie>
-                                <Tooltip contentStyle={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} formatter={(v) => [`$${v}`, "Cost"]} />
+                                <Tooltip contentStyle={{ background: "#0F172A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`$${v.toLocaleString()}`, "Cost"]} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", justifyContent: "center" }}>
-                        {breakdown.map((item, i) => (
+                        {result.costBreakdown.map((item, i) => (
                             <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.75rem", color: "#94A3B8" }}>
                                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: item.color }} /> {item.name}
                             </div>
@@ -215,60 +261,72 @@ export default function AnalysisResultPage() {
 
             </div>
 
-            {/* Recommendations & Table */}
+            {/* Recommendations & Resource Table */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "1.5rem" }}>
 
-                {/* Actions */}
+                {/* Recommended Actions */}
                 <div style={{ padding: "1.75rem", borderRadius: "1.25rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}><CheckCircle2 size={18} color="#10B981" /> Recommended Actions</h3>
-
+                    <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <CheckCircle2 size={18} color="#10B981" /> Recommended Actions
+                    </h3>
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                        {nodes.slice(0, 2).map((n, i) => (
+                        {actionableResources.length === 0 ? (
+                            <div style={{ textAlign: "center", padding: "2rem", color: "#64748B" }}>
+                                <CheckCircle2 size={32} color="#34D399" style={{ marginBottom: "0.5rem" }} />
+                                <p style={{ fontWeight: 600, color: "#34D399" }}>All resources are optimal!</p>
+                                <p style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>No immediate actions required.</p>
+                            </div>
+                        ) : actionableResources.slice(0, 3).map((r, i) => (
                             <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "1rem", padding: "1rem" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                                    <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "#F8FAFC" }}>Downsize {n.role}</span>
-                                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#34D399" }}>Save $340/mo</span>
+                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.4rem", flexWrap: "wrap", gap: "0.25rem" }}>
+                                    <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "#F8FAFC" }}>{actionLabel[r.action] || r.action}: {r.role}</span>
+                                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#34D399" }}>Save ${r.estimatedSavings}/mo</span>
                                 </div>
-                                <p style={{ fontSize: "0.75rem", color: "#64748B", marginBottom: "1rem", lineHeight: 1.5 }}>
-                                    Instance `{n.id}` ({n.size}) has consistently run at {n.util} utilization. Propose migrating to t3.medium.
+                                <p style={{ fontSize: "0.75rem", color: "#64748B", marginBottom: "0.875rem", lineHeight: 1.5 }}>
+                                    <code style={{ color: "#818CF8" }}>{r.id}</code> ({r.type}) running at {r.avgCpu}% CPU,{" "}
+                                    {r.avgMemory}% Memory. Status: <span style={{ color: statusColor[r.status] }}>{r.status}</span>.
                                 </p>
-                                <button onClick={applyFix} style={{ width: "100%", padding: "0.5rem", background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "0.5rem", color: "#A5B4FC", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", transition: "all .2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(99,102,241,0.25)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(99,102,241,0.15)"}>
+                                <button
+                                    onClick={applyFix}
+                                    style={{ width: "100%", padding: "0.5rem", background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: "0.5rem", color: "#A5B4FC", fontSize: "0.75rem", fontWeight: 700, cursor: "pointer", transition: "all .2s" }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "rgba(99,102,241,0.25)"}
+                                    onMouseLeave={e => e.currentTarget.style.background = "rgba(99,102,241,0.15)"}
+                                >
                                     Apply Configuration
                                 </button>
                             </div>
                         ))}
-                        {saved && <div style={{ fontSize: "0.75rem", background: "#10B981", color: "#fff", padding: "0.5rem", borderRadius: "0.5rem", textAlign: "center", fontWeight: 700, animation: "fadeUp 0.3s ease-out" }}>Configuration applied to cluster!</div>}
+                        {saved && <div style={{ fontSize: "0.75rem", background: "#10B981", color: "#fff", padding: "0.5rem", borderRadius: "0.5rem", textAlign: "center", fontWeight: 700 }}>Configuration applied to cluster!</div>}
                     </div>
                 </div>
 
-                {/* Resource List */}
+                {/* Resource Table */}
                 <div style={{ padding: "1.75rem", borderRadius: "1.25rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}><Database size={18} color="#818CF8" /> Resource Log</h3>
-
+                    <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <Database size={18} color="#818CF8" /> Resource Log
+                    </h3>
                     <div style={{ overflowX: "auto" }}>
                         <table style={{ width: "100%", borderCollapse: "collapse" }}>
                             <thead>
                                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)" }}>
-                                    <th style={{ padding: "0.875rem 1rem", textAlign: "left", fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Resource ID</th>
-                                    <th style={{ padding: "0.875rem 1rem", textAlign: "left", fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Role</th>
-                                    <th style={{ padding: "0.875rem 1rem", textAlign: "left", fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Type</th>
-                                    <th style={{ padding: "0.875rem 1rem", textAlign: "left", fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>P99 Util</th>
-                                    <th style={{ padding: "0.875rem 1rem", textAlign: "left", fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>Status</th>
+                                    {["Resource ID", "Role", "Type", "CPU%", "Mem%", "Cost/mo", "Status"].map(h => (
+                                        <th key={h} style={{ padding: "0.875rem 1rem", textAlign: "left", fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
+                                    ))}
                                 </tr>
                             </thead>
                             <tbody>
-                                {nodes.map((n, i) => (
+                                {result.resources.map((r, i) => (
                                     <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                                        <td style={{ padding: "1rem", fontSize: "0.8rem", color: "#F8FAFC", fontFamily: "monospace", fontWeight: 600 }}>{n.id}</td>
-                                        <td style={{ padding: "1rem", fontSize: "0.8rem", color: "#94A3B8" }}>{n.role}</td>
-                                        <td style={{ padding: "1rem", fontSize: "0.8rem", color: "#818CF8", fontWeight: 600 }}>{n.size}</td>
-                                        <td style={{ padding: "1rem", fontSize: "0.85rem", color: "#F8FAFC", fontWeight: 700 }}>{n.util}</td>
-                                        <td style={{ padding: "1rem" }}>
-                                            <span style={{
-                                                fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", padding: "0.2rem 0.6rem", borderRadius: 999,
-                                                background: n.status === "Optimal" ? "rgba(16,185,129,0.1)" : "rgba(244,63,94,0.15)",
-                                                color: n.status === "Optimal" ? "#34D399" : "#FB7185"
-                                            }}>{n.status}</span>
+                                        <td style={{ padding: "0.875rem 1rem", fontSize: "0.75rem", color: "#F8FAFC", fontFamily: "monospace", fontWeight: 600, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.id}</td>
+                                        <td style={{ padding: "0.875rem 1rem", fontSize: "0.8rem", color: "#94A3B8", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.role}</td>
+                                        <td style={{ padding: "0.875rem 1rem", fontSize: "0.8rem", color: "#818CF8", fontWeight: 600, whiteSpace: "nowrap" }}>{r.type}</td>
+                                        <td style={{ padding: "0.875rem 1rem", fontSize: "0.85rem", color: r.avgCpu > 80 ? "#F97316" : r.avgCpu < 20 ? "#FB7185" : "#34D399", fontWeight: 700 }}>{r.avgCpu}%</td>
+                                        <td style={{ padding: "0.875rem 1rem", fontSize: "0.85rem", color: r.avgMemory > 80 ? "#F97316" : r.avgMemory < 20 ? "#FB7185" : "#34D399", fontWeight: 700 }}>{r.avgMemory}%</td>
+                                        <td style={{ padding: "0.875rem 1rem", fontSize: "0.8rem", color: "#F8FAFC", fontWeight: 600, whiteSpace: "nowrap" }}>${r.monthlyCost.toLocaleString()}</td>
+                                        <td style={{ padding: "0.875rem 1rem" }}>
+                                            <span style={{ fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", padding: "0.2rem 0.6rem", borderRadius: 999, background: statusBg[r.status] || "rgba(255,255,255,0.05)", color: statusColor[r.status] || "#F8FAFC", whiteSpace: "nowrap" }}>
+                                                {r.status}
+                                            </span>
                                         </td>
                                     </tr>
                                 ))}
@@ -279,10 +337,10 @@ export default function AnalysisResultPage() {
 
             </div>
 
-            {/* Export & Configuration output section */}
+            {/* Export Section */}
             <div style={{ padding: "1.75rem", borderRadius: "1.25rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
 
-                {/* Configuration Code Output */}
+                {/* YAML Preview */}
                 <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                         <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC", display: "flex", alignItems: "center", gap: "0.5rem" }}><Code size={18} color="#38BDF8" /> Generated Configuration</h3>
@@ -290,52 +348,36 @@ export default function AnalysisResultPage() {
                             {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />} {copied ? "Copied!" : "Copy YAML"}
                         </button>
                     </div>
-                    <div style={{ background: "#0F172A", padding: "1.25rem", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.03)", overflowX: "auto" }}>
-                        <pre style={{ margin: 0, fontSize: "0.8rem", color: "#E2E8F0", fontFamily: "monospace", lineHeight: 1.5 }}>
+                    <div style={{ background: "#0F172A", padding: "1.25rem", borderRadius: "0.75rem", border: "1px solid rgba(255,255,255,0.03)", overflowX: "auto", maxHeight: 320, overflowY: "auto" }}>
+                        <pre style={{ margin: 0, fontSize: "0.78rem", color: "#E2E8F0", fontFamily: "monospace", lineHeight: 1.6 }}>
                             {getYAML()}
                         </pre>
                     </div>
                 </div>
 
-                {/* File Download Actions */}
+                {/* Download Buttons */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                     <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}><Download size={18} color="#A78BFA" /> Output Files</h3>
-                    <p style={{ fontSize: "0.85rem", color: "#64748B", marginBottom: "0.5rem", lineHeight: 1.5 }}>
-                        Download the full system report including infrastructure analysis logs, cost breakdowns, and direct execution configurations.
+                    <p style={{ fontSize: "0.85rem", color: "#64748B", marginBottom: "0.25rem", lineHeight: 1.5 }}>
+                        Download the full optimisation report derived from your uploaded CSV.
                     </p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        <button onClick={exportCSV} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "0.75rem", color: "#F8FAFC", cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                                <div style={{ background: "rgba(16,185,129,0.1)", padding: "0.4rem", borderRadius: "0.5rem" }}><FileText size={18} color="#34D399" /></div>
-                                <div style={{ textAlign: "left" }}>
-                                    <div style={{ fontSize: "0.85rem", fontWeight: 700 }}>Download CSV</div>
-                                    <div style={{ fontSize: "0.75rem", color: "#64748B" }}>Spreadsheet summary</div>
+                        {[
+                            { label: "Download CSV", sub: "Spreadsheet summary", color: "#34D399", bg: "rgba(16,185,129,0.1)", icon: <FileText size={18} color="#34D399" />, fn: exportCSV },
+                            { label: "Download YAML", sub: "IaC configuration file", color: "#38BDF8", bg: "rgba(56,189,248,0.1)", icon: <Code size={18} color="#38BDF8" />, fn: exportYAMLFile },
+                            { label: "Download JSON", sub: "API-ready format", color: "#FB7185", bg: "rgba(244,63,94,0.1)", icon: <FileJson size={18} color="#FB7185" />, fn: exportJSON },
+                        ].map((btn, i) => (
+                            <button key={i} onClick={btn.fn} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "0.75rem", color: "#F8FAFC", cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                                    <div style={{ background: btn.bg, padding: "0.4rem", borderRadius: "0.5rem" }}>{btn.icon}</div>
+                                    <div style={{ textAlign: "left" }}>
+                                        <div style={{ fontSize: "0.85rem", fontWeight: 700 }}>{btn.label}</div>
+                                        <div style={{ fontSize: "0.75rem", color: "#64748B" }}>{btn.sub}</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <Download size={16} color="#94A3B8" />
-                        </button>
-
-                        <button onClick={exportYAMLFile} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "0.75rem", color: "#F8FAFC", cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                                <div style={{ background: "rgba(56,189,248,0.1)", padding: "0.4rem", borderRadius: "0.5rem" }}><Code size={18} color="#38BDF8" /></div>
-                                <div style={{ textAlign: "left" }}>
-                                    <div style={{ fontSize: "0.85rem", fontWeight: 700 }}>Download YAML</div>
-                                    <div style={{ fontSize: "0.75rem", color: "#64748B" }}>IaC configuration file</div>
-                                </div>
-                            </div>
-                            <Download size={16} color="#94A3B8" />
-                        </button>
-
-                        <button onClick={exportJSON} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "0.75rem", color: "#F8FAFC", cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                                <div style={{ background: "rgba(244,63,94,0.1)", padding: "0.4rem", borderRadius: "0.5rem" }}><FileJson size={18} color="#FB7185" /></div>
-                                <div style={{ textAlign: "left" }}>
-                                    <div style={{ fontSize: "0.85rem", fontWeight: 700 }}>Download JSON</div>
-                                    <div style={{ fontSize: "0.75rem", color: "#64748B" }}>API-ready format</div>
-                                </div>
-                            </div>
-                            <Download size={16} color="#94A3B8" />
-                        </button>
+                                <Download size={16} color="#94A3B8" />
+                            </button>
+                        ))}
                     </div>
                 </div>
 

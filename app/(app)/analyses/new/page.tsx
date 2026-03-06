@@ -2,8 +2,9 @@
 
 import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { UploadCloud, FileType, CheckCircle2, ChevronRight, HardDrive, Play, Zap } from "lucide-react";
+import { UploadCloud, CheckCircle2, Play, Zap, AlertCircle } from "lucide-react";
 import { addAuditLog } from "../../utils";
+import { parseCSV } from "../csvParser";
 
 export default function NewAnalysisPage() {
     const router = useRouter();
@@ -12,57 +13,77 @@ export default function NewAnalysisPage() {
     const [dragActive, setDragActive] = useState(false);
     const [provider, setProvider] = useState("AWS");
     const [analysisName, setAnalysisName] = useState("");
+    const [error, setError] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
-        }
+        if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+        else if (e.type === "dragleave") setDragActive(false);
+    };
+
+    const setFileAndName = (f: File) => {
+        setFile(f);
+        setError(null);
+        if (!analysisName) setAnalysisName(f.name.replace(/\.[^/.]+$/, ""));
     };
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            setFile(e.dataTransfer.files[0]);
-            if (!analysisName) {
-                setAnalysisName(e.dataTransfer.files[0].name.replace(/\.[^/.]+$/, ""));
-            }
-        }
+        if (e.dataTransfer.files?.[0]) setFileAndName(e.dataTransfer.files[0]);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
-            if (!analysisName) {
-                setAnalysisName(e.target.files[0].name.replace(/\.[^/.]+$/, ""));
-            }
-        }
+        if (e.target.files?.[0]) setFileAndName(e.target.files[0]);
     };
 
     const startAnalysis = () => {
         if (!file) return;
         setLoading(true);
-        // Simulate processing time
-        addAuditLog(`Uploaded ${file.name} for ${provider} Analysis`, "data");
-        setTimeout(() => {
-            const randomId = "A-" + Math.floor(1000 + Math.random() * 9000);
-            router.push(`/analyses/${randomId}?provider=${provider.toLowerCase()}`);
-        }, 3000);
+        setError(null);
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const text = e.target?.result as string;
+                if (!text || text.trim().length < 10) throw new Error("File appears to be empty or invalid.");
+
+                const result = parseCSV(text, provider, analysisName || file.name);
+                const randomId = "A-" + Math.floor(1000 + Math.random() * 9000);
+
+                // Store parsed result in sessionStorage keyed by analysis ID
+                sessionStorage.setItem(`analysis_${randomId}`, JSON.stringify(result));
+
+                addAuditLog(`Parsed & analyzed ${file.name} for ${provider} (${result.resources.length} resources detected)`, "data");
+
+                // Short delay for UX then redirect
+                setTimeout(() => {
+                    router.push(`/analyses/${randomId}?provider=${provider.toLowerCase()}`);
+                }, 1500);
+            } catch (err: any) {
+                setLoading(false);
+                setError(err.message || "Failed to parse CSV. Please ensure it matches the expected format.");
+            }
+        };
+        reader.onerror = () => {
+            setLoading(false);
+            setError("Could not read the file. Please try again.");
+        };
+        reader.readAsText(file);
     };
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem", maxWidth: 800, paddingBottom: "4rem" }}>
 
-            <div style={{ padding: "0" }}>
+            <div>
                 <h1 style={{ fontSize: "2rem", fontWeight: 800, color: "#F8FAFC", letterSpacing: "-0.03em", marginBottom: "0.5rem" }}>New Cost Analysis</h1>
-                <p style={{ color: "#94A3B8", fontSize: "0.95rem", maxWidth: 600, lineHeight: 1.6 }}>Upload your cloud provider's billing export or metrics CSV to identify idle resources and generate automated optimization recommendations.</p>
+                <p style={{ color: "#94A3B8", fontSize: "0.95rem", maxWidth: 600, lineHeight: 1.6 }}>
+                    Upload your cloud provider's billing export or metrics CSV. We'll parse it in real-time and generate personalized optimization recommendations.
+                </p>
             </div>
 
             <div style={{ background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "1.25rem", padding: "2rem" }}>
@@ -72,11 +93,11 @@ export default function NewAnalysisPage() {
                     onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
                     onClick={() => fileRef.current?.click()}
                     style={{
-                        border: `2px dashed ${dragActive ? "#818CF8" : "rgba(255,255,255,0.15)"}`,
-                        background: dragActive ? "rgba(99,102,241,0.05)" : "rgba(0,0,0,0.2)",
+                        border: `2px dashed ${dragActive ? "#818CF8" : file ? "rgba(16,185,129,0.4)" : "rgba(255,255,255,0.15)"}`,
+                        background: dragActive ? "rgba(99,102,241,0.05)" : file ? "rgba(16,185,129,0.03)" : "rgba(0,0,0,0.2)",
                         borderRadius: "1rem", padding: "3rem 2rem", textAlign: "center", cursor: "pointer",
                         transition: "all 0.2s ease", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem",
-                        marginBottom: "2rem"
+                        marginBottom: "1.5rem"
                     }}
                 >
                     <input type="file" ref={fileRef} onChange={handleChange} accept=".csv,.json" style={{ display: "none" }} />
@@ -88,7 +109,7 @@ export default function NewAnalysisPage() {
                             </div>
                             <div>
                                 <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#F8FAFC", marginBottom: "0.25rem" }}>{file.name}</h3>
-                                <p style={{ fontSize: "0.85rem", color: "#64748B" }}>{(file.size / 1024 / 1024).toFixed(2)} MB • Ready to analyze</p>
+                                <p style={{ fontSize: "0.85rem", color: "#64748B" }}>{(file.size / 1024).toFixed(1)} KB • Ready to analyze</p>
                             </div>
                         </>
                     ) : (
@@ -103,6 +124,14 @@ export default function NewAnalysisPage() {
                         </>
                     )}
                 </div>
+
+                {/* Error message */}
+                {error && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1rem", borderRadius: "0.75rem", background: "rgba(244,63,94,0.08)", border: "1px solid rgba(244,63,94,0.2)", marginBottom: "1.5rem" }}>
+                        <AlertCircle size={18} color="#FB7185" />
+                        <span style={{ fontSize: "0.85rem", color: "#FB7185", fontWeight: 500 }}>{error}</span>
+                    </div>
+                )}
 
                 {/* Form fields */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "2rem" }}>
@@ -123,27 +152,28 @@ export default function NewAnalysisPage() {
                         <input
                             type="text"
                             value={analysisName} onChange={e => setAnalysisName(e.target.value)}
-                            placeholder="e.g. Q3 Production Audit"
+                            placeholder="e.g. Q1 2026 Production Audit"
                             style={{ width: "100%", padding: "0.75rem 1rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.5rem", color: "#F8FAFC", fontSize: "0.9rem", outline: "none" }}
                         />
                     </div>
                 </div>
 
                 {/* Action button */}
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "2rem", display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "2rem", display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem" }}>
+                    {loading && <p style={{ fontSize: "0.85rem", color: "#A5B4FC", fontWeight: 500 }}>Parsing CSV & running cost engine…</p>}
                     <button
                         onClick={startAnalysis}
                         disabled={!file || loading}
                         style={{
                             padding: "0.875rem 2.5rem", borderRadius: "0.75rem", cursor: file && !loading ? "pointer" : "not-allowed",
-                            background: file ? "linear-gradient(135deg, #6366F1, #4F46E5)" : "rgba(255,255,255,0.1)",
-                            color: file ? "#fff" : "#94A3B8",
+                            background: file && !loading ? "linear-gradient(135deg, #6366F1, #4F46E5)" : "rgba(255,255,255,0.1)",
+                            color: file && !loading ? "#fff" : "#94A3B8",
                             border: "none", fontSize: "1rem", fontWeight: 700, transition: "all .3s", display: "flex", alignItems: "center", gap: "0.5rem"
                         }}
                     >
                         {loading ? (
                             <>
-                                <Zap size={18} className="spin-fast" style={{ animation: "pulse-glow 1s infinite" }} />
+                                <Zap size={18} style={{ animation: "pulse-glow 1s infinite" }} />
                                 Analyzing Infrastructure...
                             </>
                         ) : (
@@ -155,13 +185,11 @@ export default function NewAnalysisPage() {
                     </button>
                     {loading && (
                         <style>{`
-                            @keyframes pulse-glow { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); text-shadow: 0 0 10px rgba(255,255,255,0.5); } }
+                            @keyframes pulse-glow { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
                         `}</style>
                     )}
                 </div>
-
             </div>
-
         </div>
     );
 }
