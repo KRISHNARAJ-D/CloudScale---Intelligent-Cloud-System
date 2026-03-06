@@ -1,0 +1,10 @@
+TimeStamp,ResourceId,ResourceGroup,ResourceType,Location,PercentageCPU,NetworkInTotal_MB,NetworkOutTotal_MB,DiskReadBytes_MB,DiskWriteBytes_MB,AvailableMemoryBytes_GB,EstimatedCost_USD
+2026-03-01T00:00:00Z,vm-prod-frontend-01,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,7.4,0.21,0.11,12.3,8.4,13.2,198.40
+2026-03-01T06:00:00Z,vm-prod-frontend-01,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,6.1,0.18,0.09,9.8,6.2,13.8,198.40
+2026-03-01T12:00:00Z,vm-prod-frontend-01,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,8.9,0.25,0.14,14.1,9.6,13.1,198.40
+2026-03-01T00:00:00Z,vm-prod-worker-02,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,79.2,18.4,9.7,380.1,210.4,5.2,342.00
+2026-03-01T06:00:00Z,vm-prod-worker-02,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,83.7,20.1,10.8,415.2,230.1,4.8,342.00
+2026-03-01T12:00:00Z,vm-prod-worker-02,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,8.4,1.2,0.6,18.4,10.2,11.7,342.00
+2026-03-01T00:00:00Z,vm-prod-db-03,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,3.2,0.08,0.04,5.2,3.1,28.9,523.20
+2026-03-01T06:00:00Z,vm-prod-db-03,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,4.1,0.09,0.05,7.1,4.3,28.4,523.20
+2026-03-01T12:00:00Z,vm-prod-db-03,rg-cloudscale-prod,Microsoft.Compute/virtualMachines,eastus,3.8,0.07,0.03,6.3,3.8,28.6,523.20
