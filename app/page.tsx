@@ -65,10 +65,23 @@ export default function LandingPage() {
                         ))}
                     </div>
 
-                    {/* CTA */}
-                    <Link href="/dashboard" className="btn-primary" style={{ padding: "0.5rem 1.25rem", background: "linear-gradient(135deg,#6366F1,#4F46E5)", borderRadius: "0.5rem", color: "#fff", fontWeight: 600, textDecoration: "none", fontSize: "0.875rem", boxShadow: "0 4px 12px rgba(99,102,241,0.25)" }}>
-                        Dashboard <ArrowRight size={14} style={{ display: "inline-block", verticalAlign: "middle", marginLeft: 4 }} />
-                    </Link>
+                    {/* Auth & CTA */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
+                        {isSignedIn ? (
+                            <Link href="/dashboard" className="btn-primary" style={{ padding: "0.5rem 1.25rem", background: "linear-gradient(135deg,#6366F1,#4F46E5)", borderRadius: "0.5rem", color: "#fff", fontWeight: 600, textDecoration: "none", fontSize: "0.875rem", boxShadow: "0 4px 12px rgba(99,102,241,0.25)" }}>
+                                Dashboard <ArrowRight size={14} style={{ display: "inline-block", verticalAlign: "middle", marginLeft: 4 }} />
+                            </Link>
+                        ) : (
+                            <>
+                                <Link href="/sign-in" style={{ color: "#E2E8F0", textDecoration: "none", fontSize: "0.9rem", fontWeight: 600, transition: "color .2s" }}>
+                                    Log In
+                                </Link>
+                                <Link href="/sign-up" className="btn-primary" style={{ padding: "0.5rem 1.25rem", background: "linear-gradient(135deg,#6366F1,#4F46E5)", borderRadius: "0.5rem", color: "#fff", fontWeight: 600, textDecoration: "none", fontSize: "0.875rem", boxShadow: "0 4px 12px rgba(99,102,241,0.25)" }}>
+                                    Sign Up
+                                </Link>
+                            </>
+                        )}
+                    </div>
                 </div>
             </nav>
 
@@ -116,10 +129,10 @@ export default function LandingPage() {
 
                     {/* Elaborate Button Group */}
                     <div style={{ display: "flex", gap: "1.25rem", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
-                        <Link href="/dashboard" className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "1.25rem 2.5rem", borderRadius: "0.875rem", fontSize: "1.125rem", boxShadow: "0 8px 32px rgba(99,102,241,0.4)" }}>
+                        <Link href={isSignedIn ? "/dashboard" : "/sign-up"} className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "1.25rem 2.5rem", borderRadius: "0.875rem", fontSize: "1.125rem", boxShadow: "0 8px 32px rgba(99,102,241,0.4)" }}>
                             Start Optimizing Cloud Costs <ArrowRight size={18} strokeWidth={2.5} />
                         </Link>
-                        <Link href="/dashboard" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "1.25rem 2.5rem", borderRadius: "0.875rem", fontSize: "1.125rem" }}>
+                        <Link href={isSignedIn ? "/dashboard" : "/sign-up"} className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "1.25rem 2.5rem", borderRadius: "0.875rem", fontSize: "1.125rem" }}>
                             <Zap size={18} color="#A5B4FC" /> See Live Dashboard
                         </Link>
                     </div>
@@ -275,7 +288,7 @@ export default function LandingPage() {
                         </div>
 
                         <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-                            <Link href="/dashboard" className="btn-primary" style={{ padding: "1rem 2rem", borderRadius: "0.75rem", fontSize: "1.05rem" }}>
+                            <Link href={isSignedIn ? "/dashboard" : "/sign-up"} className="btn-primary" style={{ padding: "1rem 2rem", borderRadius: "0.75rem", fontSize: "1.05rem" }}>
                                 Connect Infrastructure
                             </Link>
                         </div>
