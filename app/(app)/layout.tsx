@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useUser, UserButton } from "@clerk/nextjs";
+import { useUser, UserButton, useClerk } from "@clerk/nextjs";
 import {
     CloudLightning,
     BarChart3,
@@ -22,6 +22,7 @@ import {
     Terminal,
     User,
     Home,
+    LogOut,
 } from "lucide-react";
 
 const navItems = [
@@ -39,7 +40,9 @@ const bottomNav = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { user } = useUser();
+    const { signOut } = useClerk();
     const pathname = usePathname();
+    const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -183,15 +186,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                 {/* Account */}
                 <div style={{ padding: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 0.75rem", borderRadius: "0.875rem", cursor: "pointer", justifyContent: sidebarOpen ? "flex-start" : "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 0.75rem", borderRadius: "0.875rem", justifyContent: sidebarOpen ? "flex-start" : "center" }}>
                         <UserButton appearance={{ elements: { avatarBox: "w-8 h-8 rounded-xl" } }} />
                         {sidebarOpen && (
-                            <div style={{ minWidth: 0 }}>
-                                <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.firstName || "Cloud Architect"}</p>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                                <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.fullName || user?.firstName || user?.username || "User"}</p>
                                 <p style={{ fontSize: "0.7rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.primaryEmailAddress?.emailAddress}</p>
                             </div>
                         )}
                     </div>
+                    <button
+                        onClick={() => signOut(() => router.push("/"))}
+                        style={{
+                            width: "100%", display: "flex", alignItems: "center", justifyContent: sidebarOpen ? "flex-start" : "center",
+                            gap: "0.75rem", padding: sidebarOpen ? "0.6rem 0.875rem" : "0.6rem",
+                            background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.15)",
+                            borderRadius: "0.875rem", color: "#F87171", fontSize: "0.875rem",
+                            fontWeight: 600, cursor: "pointer", transition: "all .2s", marginTop: "0.25rem"
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(248,113,113,0.15)"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "rgba(248,113,113,0.06)"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.15)"; }}
+                    >
+                        <LogOut size={15} />
+                        {sidebarOpen && <span>Sign Out</span>}
+                    </button>
                 </div>
             </aside>
 
