@@ -86,7 +86,7 @@ export default function LandingPage() {
             </nav>
 
             {/* 2. Hero Section */}
-            <section style={{ padding: "140px 0 100px", position: "relative", overflow: "hidden" }}>
+            <section style={{ padding: "100px 0 80px", position: "relative", overflow: "hidden" }}>
                 {/* Advanced Glowing Background Elements */}
                 <div style={{ position: "absolute", top: "-15%", left: "30%", width: "40%", height: "80%", background: "radial-gradient(ellipse, rgba(99,102,241,0.25) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
                 <div style={{ position: "absolute", top: "10%", right: "15%", width: "35%", height: "65%", background: "radial-gradient(ellipse, rgba(139,92,246,0.15) 0%, transparent 65%)", pointerEvents: "none", zIndex: 0 }} />
@@ -95,7 +95,7 @@ export default function LandingPage() {
                 <div className="container" style={{ position: "relative", textAlign: "center", zIndex: 10 }}>
 
                     {/* SaaS Trust Banner */}
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", padding: "0.375rem 1.25rem", borderRadius: 999, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.25)", color: "#A5B4FC", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "2.5rem", backdropFilter: "blur(8px)" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem", padding: "0.375rem 1.25rem", borderRadius: 999, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.25)", color: "#A5B4FC", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "1.5rem", backdropFilter: "blur(8px)" }}>
                         <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, background: "#6366F1", borderRadius: "50%" }}>
                             <Shield size={10} color="#fff" />
                         </span>
@@ -103,36 +103,36 @@ export default function LandingPage() {
                     </div>
 
                     {/* Elaborate Headline */}
-                    <h1 style={{ fontSize: "clamp(3.5rem, 7vw, 5.5rem)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: "1.75rem", maxWidth: 1000, margin: "0 auto 1.75rem" }}>
+                    <h1 style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: "1.25rem", maxWidth: 900, margin: "0 auto 1.25rem" }}>
                         Control Your Cloud Costs<br />
                         <span style={{ background: "linear-gradient(135deg, #A5B4FC 0%, #C4B5FD 50%, #FBCFE8 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>with AI Precision</span>
                     </h1>
 
                     {/* Subheadline Elaborated */}
-                    <p style={{ fontSize: "1.25rem", color: "#94A3B8", maxWidth: 720, margin: "0 auto 3rem", lineHeight: 1.7, fontWeight: 400 }}>
+                    <p style={{ fontSize: "1.125rem", color: "#94A3B8", maxWidth: 680, margin: "0 auto 2rem", lineHeight: 1.6, fontWeight: 400 }}>
                         CloudScale Genius deeply analyzes your multi-cloud infrastructure to instantly reveal hidden inefficiencies, completely eliminating cloud waste without requiring intrusive IAM agents.
                     </p>
 
                     {/* Pro-Tags Grid */}
-                    <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap", marginBottom: "3.5rem", maxWidth: 840, margin: "0 auto 3.5rem" }}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "2.5rem", maxWidth: 840, margin: "0 auto 2.5rem" }}>
                         {[
                             "Detect wasted cloud resources",
                             "AI-driven cost optimization",
                             "Real-time infrastructure insights",
                             "Built for DevOps & FinOps teams"
                         ].map((tag) => (
-                            <span key={tag} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", padding: "0.6rem 1rem", borderRadius: "0.75rem", fontSize: "0.9rem", color: "#CBD5E1", fontWeight: 500, letterSpacing: "-0.01em" }}>
+                            <span key={tag} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", padding: "0.5rem 0.875rem", borderRadius: "0.5rem", fontSize: "0.85rem", color: "#CBD5E1", fontWeight: 500, letterSpacing: "-0.01em" }}>
                                 <CheckCircle2 size={16} color="#34D399" /> {tag}
                             </span>
                         ))}
                     </div>
 
                     {/* Elaborate Button Group */}
-                    <div style={{ display: "flex", gap: "1.25rem", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
-                        <Link href={isSignedIn ? "/dashboard" : "/sign-up"} className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "1.25rem 2.5rem", borderRadius: "0.875rem", fontSize: "1.125rem", boxShadow: "0 8px 32px rgba(99,102,241,0.4)" }}>
+                    <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
+                        <Link href={isSignedIn ? "/dashboard" : "/sign-up"} className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "1rem 2rem", borderRadius: "0.75rem", fontSize: "1.05rem", boxShadow: "0 8px 32px rgba(99,102,241,0.4)" }}>
                             Start Optimizing Cloud Costs <ArrowRight size={18} strokeWidth={2.5} />
                         </Link>
-                        <Link href={isSignedIn ? "/dashboard" : "/sign-up"} className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.625rem", padding: "1.25rem 2.5rem", borderRadius: "0.875rem", fontSize: "1.125rem" }}>
+                        <Link href={isSignedIn ? "/dashboard" : "/sign-up"} className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "1rem 2rem", borderRadius: "0.75rem", fontSize: "1.05rem" }}>
                             <Zap size={18} color="#A5B4FC" /> See Live Dashboard
                         </Link>
                     </div>
