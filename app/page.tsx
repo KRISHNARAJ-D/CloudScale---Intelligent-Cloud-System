@@ -6,7 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { ModernLogo } from "./components/ModernLogo";
 import {
     UploadCloud, Zap, BarChart3, Download, Github, Shield,
-    CheckCircle2, ArrowRight, Activity, Cpu, Bot, CloudOff, FileCheck
+    CheckCircle2, ArrowRight, Activity, Cpu, Bot, CloudOff, FileCheck, X
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -152,7 +152,7 @@ export default function LandingPage() {
                         </p>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem" }}>
+                    <div className="features-grid">
                         {features.map((f, i) => (
                             <div key={i} className="feature-card">
                                 <div style={{ width: 48, height: 48, borderRadius: "0.75rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
@@ -232,23 +232,29 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* 7. Call To Action */}
+            {/* 7. Integrations & Final CTA */}
             <section style={{ padding: "120px 0" }}>
                 <div className="container">
-                    <div style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(79,70,229,0.25))", border: "1px solid rgba(139,92,246,0.3)", borderRadius: "2rem", padding: "4rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
-                        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, rgba(139,92,246,0.2) 0%, transparent 70%)", pointerEvents: "none" }} />
-                        <h2 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, letterSpacing: "-0.03em", color: "#F8FAFC", marginBottom: "1rem", position: "relative", zIndex: 10 }}>
-                            Start reducing cloud waste today
+                    <div style={{ background: "linear-gradient(135deg, rgba(30,41,59,0.5), rgba(15,23,42,0.8))", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "2rem", padding: "4rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" }}>
+                        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", height: "1px", background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.5), transparent)" }} />
+
+                        <h2 style={{ fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)", fontWeight: 800, color: "#F8FAFC", marginBottom: "1rem" }}>
+                            Seamless integration with your stack
                         </h2>
-                        <p style={{ fontSize: "1.125rem", color: "#C7D2FE", marginBottom: "2.5rem", maxWidth: 500, margin: "0 auto 2.5rem", position: "relative", zIndex: 10 }}>
-                            Upload your cloud metrics and see your savings instantly.
+                        <p style={{ fontSize: "1.1rem", color: "#94A3B8", marginBottom: "3rem", maxWidth: 600, margin: "0 auto 3rem" }}>
+                            We process exports from every major cloud provider without requiring API keys, IAM roles, or local agents.
                         </p>
-                        <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap", position: "relative", zIndex: 10 }}>
+
+                        <div style={{ display: "flex", justifyContent: "center", gap: "2rem", flexWrap: "wrap", marginBottom: "4rem", opacity: 0.8 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, color: "#CBD5E1" }}><CloudOff size={24} /> AWS</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, color: "#CBD5E1" }}><CloudOff size={24} /> GCP</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, color: "#CBD5E1" }}><CloudOff size={24} /> Azure</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 700, color: "#CBD5E1" }}><FileCheck size={24} /> Kubernetes</div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
                             <Link href="/dashboard" className="btn-primary" style={{ padding: "1rem 2rem", borderRadius: "0.75rem", fontSize: "1.05rem" }}>
-                                Start Optimizing
-                            </Link>
-                            <Link href="/demos" className="btn-secondary" style={{ padding: "1rem 2rem", borderRadius: "0.75rem", fontSize: "1.05rem" }}>
-                                View Demo
+                                Connect Infrastructure
                             </Link>
                         </div>
                     </div>
@@ -300,8 +306,15 @@ export default function LandingPage() {
                         </div>
                     </div>
 
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "2rem", textAlign: "center", color: "#475569", fontSize: "0.875rem" }}>
-                        © 2026 CloudScale Genius
+                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                        <div style={{ color: "#475569", fontSize: "0.875rem" }}>
+                            © 2026 CloudScale Genius
+                        </div>
+                        <div style={{ display: "flex", gap: "1.5rem", fontSize: "0.75rem", fontWeight: 700, color: "#475569", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                            <span>🔒 SOC2 Type II</span>
+                            <span>🌍 ISO 27001</span>
+                            <span>⚡ 99.9% Uptime</span>
+                        </div>
                     </div>
                 </div>
             </footer>
@@ -384,9 +397,24 @@ export default function LandingPage() {
                     color: #F8FAFC;
                 }
 
+                .features-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 1.5rem;
+                }
+
+                @media (max-width: 992px) {
+                    .features-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+
                 @media (max-width: 768px) {
                     .nav-links { display: none !important; }
                     section { padding: 60px 0 !important; }
+                    .features-grid {
+                        grid-template-columns: 1fr;
+                    }
                     footer > .container > div:first-child {
                         grid-template-columns: 1fr;
                         gap: 2rem;
