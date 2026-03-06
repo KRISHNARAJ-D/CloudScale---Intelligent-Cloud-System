@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2, TrendingDown, DollarSign, Database, Server, Download, Shield, LayoutList, Check, Copy, FileText, FileJson, Code } from "lucide-react";
 import { AreaChart, Area, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 import { addAuditLog } from "../../utils";
@@ -9,7 +9,9 @@ import { addAuditLog } from "../../utils";
 export default function AnalysisResultPage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const id = params?.id as string;
+    const providerParam = searchParams?.get("provider") || "aws"; // fallback
     const [saved, setSaved] = useState(false);
 
     // Mock interactive data
@@ -46,7 +48,7 @@ export default function AnalysisResultPage() {
 
     const exportData = {
         optimization: {
-            provider: "aws",
+            provider: providerParam,
             recommendations: nodes.map(n => ({
                 resource: n.role,
                 resource_id: n.id,
@@ -57,7 +59,7 @@ export default function AnalysisResultPage() {
     };
 
     const getYAML = () => {
-        let y = "optimization:\n  provider: aws\n  recommendations:\n";
+        let y = `optimization:\n  provider: ${providerParam}\n  recommendations:\n`;
         exportData.optimization.recommendations.forEach(r => {
             y += `    - resource: ${r.resource}\n`;
             y += `      action: ${r.action}\n`;
@@ -89,7 +91,7 @@ export default function AnalysisResultPage() {
         const headers = ["Resource Name", "Cloud Provider", "Resource Type", "Monthly Cost", "Optimization Recommendation", "Potential Savings"];
         const rows = nodes.map(n => [
             n.role,
-            "AWS",
+            providerParam.toUpperCase(),
             n.size,
             n.role.includes("API") ? "$1,200" : "$800",
             n.status,

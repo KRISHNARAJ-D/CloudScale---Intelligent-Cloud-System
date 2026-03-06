@@ -53,7 +53,7 @@ export default function NewAnalysisPage() {
         addAuditLog(`Uploaded ${file.name} for ${provider} Analysis`, "data");
         setTimeout(() => {
             const randomId = "A-" + Math.floor(1000 + Math.random() * 9000);
-            router.push(`/analyses/${randomId}`);
+            router.push(`/analyses/${randomId}?provider=${provider.toLowerCase()}`);
         }, 3000);
     };
 
