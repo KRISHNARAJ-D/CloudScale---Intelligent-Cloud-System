@@ -222,7 +222,81 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* 6. Comparison Section */}
+            {/* 6. Pricing Section */}
+            <section id="pricing" style={{ padding: "100px 0", borderTop: "1px solid rgba(255,255,255,0.03)" }}>
+                <div className="container">
+                    <div style={{ textAlign: "center", marginBottom: "4rem" }}>
+                        <h2 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: "1rem" }}>
+                            Simple, Transparent Pricing
+                        </h2>
+                        <p style={{ color: "#94A3B8", fontSize: "1.125rem", maxWidth: 600, margin: "0 auto" }}>
+                            Our mission is to eliminate cloud waste everywhere.
+                        </p>
+                    </div>
+
+                    <div style={{
+                        maxWidth: 440, margin: "0 auto",
+                        background: "linear-gradient(135deg, rgba(99,102,241,0.1), rgba(30,41,59,0.4))",
+                        border: "1px solid rgba(99,102,241,0.3)",
+                        borderRadius: "2rem", padding: "3rem", textAlign: "center",
+                        boxShadow: "0 20px 50px rgba(0,0,0,0.3)"
+                    }}>
+                        <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "#818CF8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1rem" }}>
+                            Community Edition
+                        </div>
+                        <div style={{ fontSize: "4rem", fontWeight: 900, color: "#fff", marginBottom: "0.5rem" }}>$0</div>
+                        <p style={{ color: "#94A3B8", marginBottom: "2rem" }}>Free and open for everyone, forever.</p>
+
+                        <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2.5rem" }}>
+                            {["Unlimited CSV Uploads", "All Cloud Providers", "Automated YAML Export", "Zero IAM Permissions", "Instant Performance Reports"].map(f => (
+                                <div key={f} style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "0.95rem", color: "#CBD5E1" }}>
+                                    <CheckCircle2 size={18} color="#34D399" /> {f}
+                                </div>
+                            ))}
+                        </div>
+
+                        <Link href="/pricing" style={{ display: "block", textDecoration: "none", padding: "1rem", background: "linear-gradient(135deg,#6366F1,#4F46E5)", borderRadius: "1rem", color: "#fff", fontWeight: 700, boxShadow: "0 4px 12px rgba(99,102,241,0.3)" }}>
+                            Read Full Pricing Details
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* 7. Quick Docs / Guide Section */}
+            <section id="docs" style={{ padding: "100px 0", background: "#0B1120" }}>
+                <div className="container">
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4rem", alignItems: "center" }}>
+                        <div>
+                            <h2 style={{ fontSize: "clamp(2rem, 4vw, 2.75rem)", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: "1.5rem" }}>
+                                Ready to optimize in 60 seconds?
+                            </h2>
+                            <p style={{ color: "#94A3B8", fontSize: "1.1rem", lineHeight: 1.7, marginBottom: "2rem" }}>
+                                Our interactive guides show you exactly how to export your metrics from AWS, GCP, Azure, or Kubernetes without ever sharing an API key.
+                            </p>
+                            <Link href="/docs" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.875rem 1.75rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.75rem", color: "#F8FAFC", textDecoration: "none", fontWeight: 600 }}>
+                                View Setup Guides <ArrowRight size={16} />
+                            </Link>
+                        </div>
+                        <div style={{ background: "rgba(30,41,59,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "1.5rem", padding: "2rem" }}>
+                            <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem" }}>
+                                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#F87171" }} />
+                                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#FBBF24" }} />
+                                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#34D399" }} />
+                            </div>
+                            <div style={{ fontFamily: "monospace", fontSize: "0.9rem", color: "#94A3B8" }}>
+                                <div style={{ color: "#818CF8" }}># Standard AWS CloudWatch Export</div>
+                                <div>timestamp,instance_id,cpu_utilization...</div>
+                                <div style={{ color: "#34D399" }}>2026-03-01 12:00:00,i-0abcd123,8.2%</div>
+                                <br />
+                                <div style={{ color: "#818CF8" }}># CloudScale Analysis Output</div>
+                                <div style={{ color: "#FBBF24" }}>optimization:</div>
+                                <div style={{ color: "#FBBF24" }}>&nbsp;&nbsp;provider: aws</div>
+                                <div style={{ color: "#FBBF24" }}>&nbsp;&nbsp;action: downgrade_instance</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             <section id="vs-nops" style={{ padding: "100px 0", background: "#0B1120" }}>
                 <div className="container">
                     <h2 style={{ fontSize: "clamp(2rem, 4vw, 2.75rem)", fontWeight: 800, letterSpacing: "-0.03em", textAlign: "center", marginBottom: "4rem" }}>
