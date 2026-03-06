@@ -1,0 +1,42 @@
+# A string used to distinguish different Supabase projects on the same host. Defaults to the
+project_id = "cloudscale_genius"
+
+[api]
+port = 54321
+# Comma separated list of schemas to expose in your API routes.
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[db.pooler]
+enabled = true # PgBouncer scaling for heavily connections
+
+[auth]
+port = 54324
+jwt_expiry = 3600
+enable_signup = true
+enable_anonymous_sign_ins = true # Required for our Login Optional flow
+
+# Clerk external JWT integration configuration
+[auth.external.jwt]
+enable = true
+jwks_url = "https://clerk.cloudscale-genius.com/.well-known/jwks.json" # Replaced automatically in prod
+
+[auth.email]
+enable = false # Handled via Clerk
+
+[realtime]
+enabled = true
+port = 54325
+tenant_security_enabled = true # Ensure RLS enforces on socket connections
+
+[functions]
+port = 54328
+
+# pg_cron extension integration mapping to our edge function weekly
+[[functions.weekly-report]]
+verify_jwt = false # Invoked via system pg_cron
