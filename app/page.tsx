@@ -391,7 +391,7 @@ export default function LandingPage() {
                             <h4 style={{ fontSize: "0.8rem", fontWeight: 700, color: "#F8FAFC", marginBottom: "1.25rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Product</h4>
                             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                                 {["Features", "Pricing", "Docs"].map(link => (
-                                    <Link key={link} href={`/${link.toLowerCase()}`} className="footer-link">{link}</Link>
+                                    <a key={link} href={`#${link.toLowerCase()}`} className="footer-link">{link}</a>
                                 ))}
                             </div>
                         </div>
@@ -399,9 +399,9 @@ export default function LandingPage() {
                         <div>
                             <h4 style={{ fontSize: "0.8rem", fontWeight: 700, color: "#F8FAFC", marginBottom: "1.25rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>Resources</h4>
                             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                                {["Documentation", "GitHub", "API"].map(link => (
-                                    <Link key={link} href="#" className="footer-link">{link}</Link>
-                                ))}
+                                <Link href="/docs" className="footer-link">Documentation</Link>
+                                <a href="https://github.com/KRISHNARAJ-D/CloudScale---Intelligent-Cloud-System" className="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+                                <Link href="/dashboard" className="footer-link">Cloud Tools</Link>
                             </div>
                         </div>
 
