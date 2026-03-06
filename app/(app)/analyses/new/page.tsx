@@ -112,10 +112,10 @@ export default function NewAnalysisPage() {
                             value={provider} onChange={e => setProvider(e.target.value)}
                             style={{ width: "100%", padding: "0.75rem 1rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.5rem", color: "#F8FAFC", fontSize: "0.9rem", outline: "none", appearance: "none" }}
                         >
-                            <option value="AWS">Amazon Web Services (AWS)</option>
-                            <option value="GCP">Google Cloud Platform (GCP)</option>
-                            <option value="Azure">Microsoft Azure</option>
-                            <option value="K8s">Kubernetes Metrics</option>
+                            <option value="AWS" style={{ background: "#0F172A", color: "#F8FAFC" }}>Amazon Web Services (AWS)</option>
+                            <option value="GCP" style={{ background: "#0F172A", color: "#F8FAFC" }}>Google Cloud Platform (GCP)</option>
+                            <option value="Azure" style={{ background: "#0F172A", color: "#F8FAFC" }}>Microsoft Azure</option>
+                            <option value="K8s" style={{ background: "#0F172A", color: "#F8FAFC" }}>Kubernetes Metrics</option>
                         </select>
                     </div>
                     <div>
