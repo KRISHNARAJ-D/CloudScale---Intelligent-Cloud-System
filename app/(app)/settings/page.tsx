@@ -9,11 +9,11 @@ import { addAuditLog } from "../utils";
 export default function SettingsPage() {
     const { user } = useUser();
 
-    // State
+    // State — name/email are always sourced from Clerk, never localStorage
     const [saved, setSaved] = useState(false);
     const [settings, setSettings] = useState({
-        displayName: "Cloud Architect",
-        email: "user@enterprise.com",
+        displayName: "",
+        email: "",
         notifications: {
             weekly: true,
             savings: true,
@@ -40,19 +40,29 @@ export default function SettingsPage() {
         { name: "Production API Key", id: "key_prod_9X...", created: "Oct 12, 2025" }
     ]);
 
-    // Load from localStorage
+    // Load saved preferences from localStorage, but ALWAYS use Clerk for identity
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const savedSettings = localStorage.getItem("cloudscale_settings");
             if (savedSettings) {
-                setSettings(JSON.parse(savedSettings));
-            } else if (user) {
+                const parsed = JSON.parse(savedSettings);
                 setSettings(s => ({
                     ...s,
-                    displayName: user.fullName || user.firstName || "Cloud Architect",
-                    email: user.primaryEmailAddress?.emailAddress || "user@enterprise.com"
+                    notifications: parsed.notifications ?? s.notifications,
+                    appearance: parsed.appearance ?? s.appearance,
                 }));
             }
+        }
+    }, []);
+
+    // Always sync name + email from Clerk (source of truth)
+    useEffect(() => {
+        if (user) {
+            setSettings(s => ({
+                ...s,
+                displayName: user.fullName || user.firstName || user.username || "User",
+                email: user.primaryEmailAddress?.emailAddress || ""
+            }));
         }
     }, [user]);
 
@@ -66,7 +76,12 @@ export default function SettingsPage() {
 
     const handleSave = () => {
         if (typeof window !== 'undefined') {
-            localStorage.setItem("cloudscale_settings", JSON.stringify(settings));
+            // Only persist preferences, NOT identity (name/email managed by Clerk)
+            const toSave = {
+                notifications: settings.notifications,
+                appearance: settings.appearance
+            };
+            localStorage.setItem("cloudscale_settings", JSON.stringify(toSave));
         }
         addAuditLog("Updated account preferences and configuration", "settings");
         setSaved(true);
