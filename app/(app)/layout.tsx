@@ -44,6 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const pathname = usePathname();
     const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [mobileOpen, setMobileOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const searchInputRef = React.useRef<HTMLInputElement>(null);
@@ -104,8 +105,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div style={{ minHeight: "100vh", background: "#0F172A", color: "#F8FAFC", display: "flex", fontFamily: "'Inter', system-ui, sans-serif" }}>
 
 
+            {/* Mobile drawer overlay */}
+            {mobileOpen && (
+                <div className="cs-drawer-overlay" onClick={() => setMobileOpen(false)} />
+            )}
+
             {/* SIDEBAR */}
-            <aside style={{
+            <aside className={`cs-sidebar${mobileOpen ? " cs-sidebar-open" : ""}`} style={{
                 width: sidebarW,
                 minWidth: sidebarW,
                 height: "100vh",
@@ -213,18 +219,46 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
             </aside>
 
+            {/* MOBILE BOTTOM NAV */}
+            <nav className="cs-bottom-nav">
+                {[...navItems.slice(0, 3), { name: "Settings", href: "/settings", icon: <Settings size={20} /> }].map(item => {
+                    const active = isActive(item.href);
+                    return (
+                        <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} style={{
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: "3px",
+                            textDecoration: "none", color: active ? "#818CF8" : "#475569",
+                            padding: "0.5rem 0.75rem", borderRadius: "0.75rem", flex: 1,
+                            background: active ? "rgba(99,102,241,0.12)" : "transparent",
+                            transition: "all .2s", fontSize: "0.6rem", fontWeight: 700
+                        }}>
+                            {item.icon}
+                            <span>{item.name}</span>
+                        </Link>
+                    );
+                })}
+                <button onClick={() => setMobileOpen(v => !v)} style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: "3px",
+                    background: "none", border: "none", color: mobileOpen ? "#818CF8" : "#475569",
+                    padding: "0.5rem 0.75rem", borderRadius: "0.75rem", cursor: "pointer",
+                    fontSize: "0.6rem", fontWeight: 700, flex: 1
+                }}>
+                    <Menu size={20} />
+                    <span>More</span>
+                </button>
+            </nav>
+
             {/* MAIN */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, maxHeight: "100vh" }}>
 
                 {/* TOPBAR */}
                 <header style={{ height: 68, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", background: "#0F172A", borderBottom: "1px solid rgba(255,255,255,0.06)", position: "sticky", top: 0, zIndex: 20, flexShrink: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-                        <button onClick={() => setSidebarOpen(v => !v)} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", display: "flex", alignItems: "center", padding: 4 }}>
+                        <button onClick={() => { setSidebarOpen(v => !v); setMobileOpen(v => !v); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", display: "flex", alignItems: "center", padding: 4 }}>
                             <Menu size={20} />
                         </button>
 
                         {/* Search */}
-                        <div style={{ position: "relative" }}>
+                        <div className="cs-search-bar" style={{ position: "relative" }}>
                             <div onClick={() => setIsSearchOpen(true)} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.5rem 1rem", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.75rem", color: "#475569", fontSize: "0.8rem", cursor: "text", transition: "all .2s", minWidth: 260 }}>
                                 <Search size={14} />
                                 <input
@@ -269,7 +303,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         </div>
 
                         {/* Breadcrumbs */}
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.75rem", color: "#475569", fontWeight: 500 }}>
+                        <div className="cs-breadcrumbs" style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.75rem", color: "#475569", fontWeight: 500 }}>
                             <Link href="/dashboard" style={{ color: "#475569", textDecoration: "none", transition: "color .2s" }}>Dashboard</Link>
                             <ChevronRight size={12} color="#334155" />
                             <span style={{ color: "#a5b4fc", fontWeight: 700 }}>Overview</span>
@@ -291,7 +325,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </header>
 
                 {/* PAGE CONTENT */}
-                <main style={{ flex: 1, overflowY: "auto", padding: "2.5rem", background: "#0F172A" }}>
+                <main style={{ flex: 1, overflowY: "auto", background: "#0F172A" }} className="cs-page-content">
                     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
                         {children}
                     </div>

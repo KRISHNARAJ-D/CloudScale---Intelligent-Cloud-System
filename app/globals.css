@@ -220,6 +220,147 @@
   transform: translateX(-100%);
   animation: shimmer 2s infinite;
 }
-html[data-theme='light'] { filter: invert(1) hue-rotate(180deg); }
-html[data-theme='light'] img, html[data-theme='light'] svg, html[data-theme='light'] video { filter: invert(1) hue-rotate(180deg); }
-html[data-density='compact'] * { padding: 0.8em 1em !important; font-size: 0.95em !important; }
+
+html[data-theme='light'] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html[data-theme='light'] img,
+html[data-theme='light'] svg,
+html[data-theme='light'] video {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html[data-density='compact'] * {
+  padding: 0.8em 1em !important;
+  font-size: 0.95em !important;
+}
+
+/* ─────────────────────────────────────────────────────────
+   MOBILE RESPONSIVE OVERRIDES
+   ───────────────────────────────────────────────────────── */
+
+/* Sidebar hidden on mobile, visible on desktop */
+.cs-sidebar {
+  display: flex;
+}
+
+/* Mobile bottom nav — hidden on desktop */
+.cs-bottom-nav {
+  display: none;
+}
+
+/* Mobile drawer overlay */
+.cs-drawer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 40;
+  backdrop-filter: blur(4px);
+}
+
+/* Mobile topbar search — full width */
+.cs-search-bar {
+  min-width: 260px;
+}
+
+/* Page content padding */
+.cs-page-content {
+  padding: 2.5rem;
+}
+
+@media (max-width: 768px) {
+
+  /* Hide desktop sidebar */
+  .cs-sidebar {
+    position: fixed !important;
+    left: -280px;
+    top: 0;
+    height: 100vh;
+    z-index: 50;
+    transition: left 0.3s ease !important;
+    width: 260px !important;
+    min-width: 260px !important;
+  }
+
+  .cs-sidebar.cs-sidebar-open {
+    left: 0;
+  }
+
+  /* Show overlay when drawer open */
+  .cs-drawer-overlay {
+    display: block;
+  }
+
+  /* Bottom navigation bar */
+  .cs-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: #1E293B;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 30;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 0.5rem;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Add padding at bottom for bottom nav */
+  .cs-page-content {
+    padding: 1.25rem 1rem 5rem 1rem !important;
+  }
+
+  /* Topbar search — hide on mobile, show icon only */
+  .cs-search-bar {
+    display: none;
+  }
+
+  /* Topbar padding */
+  header {
+    padding: 0 1rem !important;
+  }
+
+  /* Hide breadcrumbs on mobile */
+  .cs-breadcrumbs {
+    display: none;
+  }
+
+  /* Make tables scrollable */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Stack grids to single column */
+  .cs-grid-2,
+  .cs-grid-3,
+  .cs-grid-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce heading sizes */
+  h1 {
+    font-size: 1.375rem !important;
+  }
+
+  h2 {
+    font-size: 1.125rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .cs-page-content {
+    padding: 1rem 0.75rem 5rem 0.75rem !important;
+  }
+
+  /* Cards full width */
+  .cs-card {
+    border-radius: 0.875rem !important;
+  }
+}
