@@ -103,7 +103,7 @@ export default function LandingPage() {
                     </div>
 
                     {/* Elaborate Headline */}
-                    <h1 style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: "1.25rem", maxWidth: 900, margin: "0 auto 1.25rem" }}>
+                    <h1 style={{ fontSize: "clamp(2.75rem, 6vw, 4.5rem)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: "1.25rem", maxWidth: "100%", margin: "0 auto 1.25rem" }}>
                         Control Your Cloud Costs<br />
                         <span style={{ background: "linear-gradient(135deg, #A5B4FC 0%, #C4B5FD 50%, #FBCFE8 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>with AI Precision</span>
                     </h1>
