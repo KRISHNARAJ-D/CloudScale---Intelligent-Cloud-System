@@ -3,11 +3,16 @@
 import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud, CheckCircle2, Play, Zap, AlertCircle } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { useSupabase } from "../../../hooks/useSupabase";
 import { addAuditLog } from "../../utils";
 import { parseCSV } from "../csvParser";
 
 export default function NewAnalysisPage() {
     const router = useRouter();
+    const { user } = useUser();
+    const supabase = useSupabase();
+
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
@@ -59,6 +64,18 @@ export default function NewAnalysisPage() {
                 sessionStorage.setItem(`analysis_${randomId}`, JSON.stringify(result));
 
                 addAuditLog(`Parsed & analyzed ${file.name} for ${provider} (${result.resources.length} resources detected)`, "data");
+
+                // Also push to Supabase Audit Logs if user is logged in
+                if (user?.id) {
+                    supabase.from("audit_logs").insert({
+                        user_id: user.id,
+                        action: "Uploaded Cloud Metrics CSV",
+                        entity_type: "file",
+                        metadata: { filename: file.name, provider, resource_count: result.resources.length }
+                    }).then(({ error }) => {
+                        if (error) console.error("Audit log error:", error);
+                    });
+                }
 
                 // Short delay for UX then redirect
                 setTimeout(() => {

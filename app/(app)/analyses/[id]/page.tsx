@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2, TrendingDown, DollarSign, Database, Server, Download, Shield, Copy, FileText, FileJson, Code, AlertTriangle } from "lucide-react";
 import { AreaChart, Area, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { useUser } from "@clerk/nextjs";
+import { useSupabase } from "../../../hooks/useSupabase";
 import { addAuditLog } from "../../utils";
 import type { AnalysisResult, ParsedResource } from "../csvParser";
 
@@ -35,28 +38,101 @@ export default function AnalysisResultPage() {
     const id = params?.id as string;
     const providerParam = searchParams?.get("provider") || "aws";
 
+    const { user } = useUser();
+    const supabase = useSupabase();
+
     const [result, setResult] = useState<AnalysisResult | null>(null);
     const [notFound, setNotFound] = useState(false);
     const [saved, setSaved] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         const stored = sessionStorage.getItem(`analysis_${id}`);
         if (stored) {
             try {
-                setResult(JSON.parse(stored));
+                const parsed = JSON.parse(stored);
+                setResult(parsed);
+                // Trigger auto-save to Supabase if user is logged in
+                if (user?.id && !saved) {
+                    saveAnalysisToSupabase(parsed, user.id);
+                }
             } catch {
                 setNotFound(true);
             }
         } else {
             setNotFound(true);
         }
-    }, [id]);
+    }, [id, user?.id]);
 
-    const applyFix = () => {
-        setSaved(true);
-        addAuditLog(`Applied ${id} optimization configuration to target active instances`, "system");
-        setTimeout(() => setSaved(false), 2500);
+    const saveAnalysisToSupabase = async (data: AnalysisResult, userId: string) => {
+        try {
+            const { error } = await supabase.from("analyses").upsert({
+                user_id: userId,
+                filename: data.analysisName || `analysis_${id}.csv`,
+                provider: data.provider,
+                original_cost: data.totalMonthlyCost,
+                optimized_cost: data.totalMonthlyCost - data.totalSavings,
+                savings_percentage: data.totalSavings > 0 ? (data.totalSavings / data.totalMonthlyCost) * 100 : 0,
+                raw_results: data,
+                created_at: new Date().toISOString(),
+            }, { onConflict: "id" });
+
+            if (error) console.error("Supabase error (saveAnalysis):", error);
+            else {
+                // Also add an audit log to Supabase
+                await supabase.from("audit_logs").insert({
+                    user_id: userId,
+                    action: "Generated Analysis Report",
+                    entity_type: "analysis",
+                    entity_id: id as any,
+                    metadata: { provider: data.provider, savings: data.totalSavings }
+                });
+            }
+        } catch (err) {
+            console.error("Failed to save to Supabase:", err);
+        }
+    };
+
+    const applyFix = async () => {
+        if (!result || !user?.id) return;
+        setSaving(true);
+
+        try {
+            // 1. Create a Policy record
+            const { error: policyError } = await supabase.from("policies").insert({
+                user_id: user.id,
+                name: `Optimization for ${id}`,
+                yaml_config: getYAML(),
+                status: "active",
+            });
+
+            // 2. Add to Savings History
+            const { error: historyError } = await supabase.from("savings_history").insert({
+                user_id: user.id,
+                daily_savings: result.totalSavings / 30, // daily estimate
+                waste_percentage: result.wastePercent,
+                timestamp: new Date().toISOString().split('T')[0],
+            });
+
+            // 3. Audit Log
+            await supabase.from("audit_logs").insert({
+                user_id: user.id,
+                action: "Applied Optimization Policy",
+                entity_type: "policy",
+                metadata: { analysis_id: id }
+            });
+
+            if (!policyError && !historyError) {
+                setSaved(true);
+                addAuditLog(`Applied ${id} optimization configuration to target active instances`, "system");
+                setTimeout(() => setSaved(false), 2500);
+            }
+        } catch (err) {
+            console.error("Apply fix error:", err);
+        } finally {
+            setSaving(false);
+        }
     };
 
     const downloadFile = (content: string, filename: string, mimeType: string) => {
