@@ -44,6 +44,20 @@ export default function TeamPage() {
         }]);
         setInvited(true);
         addAuditLog(`Invited user '${email}' with ${role} access`, "auth");
+
+        const storedNotes = localStorage.getItem("cs_notifications_v1");
+        const notes = storedNotes ? JSON.parse(storedNotes) : [];
+        const newNote = {
+            id: `invite_${Date.now()}`,
+            type: "invite",
+            sender: "admin@enterprise.com",
+            workspace: `Engineering Cost Workspace (Sent to ${email})`,
+            time: "Just now",
+            read: false
+        };
+        localStorage.setItem("cs_notifications_v1", JSON.stringify([newNote, ...notes]));
+        window.dispatchEvent(new Event("notifications_update"));
+
         setTimeout(() => setInvited(false), 2000);
         setEmail("");
     };
@@ -149,9 +163,9 @@ export default function TeamPage() {
                             <div>
                                 <label style={{ display: "block", fontSize: "0.75rem", color: "#94A3B8", fontWeight: 600, marginBottom: "0.5rem" }}>Assign Role</label>
                                 <select value={role} onChange={e => setRole(e.target.value)} style={{ width: "100%", padding: "0.6rem 1rem", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.5rem", color: "#F8FAFC", fontSize: "0.875rem", outline: "none", appearance: "none" }}>
-                                    <option value="Admin">Admin (Full Access)</option>
-                                    <option value="Member">Member (Edit Analyses)</option>
-                                    <option value="Viewer">Viewer (Read Only)</option>
+                                    <option value="Admin" style={{ background: "#1E293B", color: "#F8FAFC" }}>Admin (Full Access)</option>
+                                    <option value="Member" style={{ background: "#1E293B", color: "#F8FAFC" }}>Member (Edit Analyses)</option>
+                                    <option value="Viewer" style={{ background: "#1E293B", color: "#F8FAFC" }}>Viewer (Read Only)</option>
                                 </select>
                             </div>
                             <button type="submit" style={{

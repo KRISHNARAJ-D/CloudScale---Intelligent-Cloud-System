@@ -8,6 +8,7 @@ export default function AuditLogPage() {
     const { user: clerkUser } = useUser();
     const fallbackEmail = clerkUser?.primaryEmailAddress?.emailAddress || "user@example.com";
     const [search, setSearch] = useState("");
+    const [filterType, setFilterType] = useState<string>("all");
     const [logs, setLogs] = useState<any[]>([]);
 
     useEffect(() => {
@@ -36,9 +37,26 @@ export default function AuditLogPage() {
     }, []);
 
     const filteredLogs = logs.filter(l =>
-        l.event?.toLowerCase().includes(search.toLowerCase()) ||
-        l.user?.toLowerCase().includes(search.toLowerCase())
+        (filterType === "all" || l.type === filterType) &&
+        (l.event?.toLowerCase().includes(search.toLowerCase()) ||
+            l.user?.toLowerCase().includes(search.toLowerCase()))
     );
+
+    const handleExportCSV = () => {
+        const csvRows = [];
+        csvRows.push(["Event ID", "Timestamp", "Activity", "User/Actor", "IP", "Type"].join(','));
+        filteredLogs.forEach(log => {
+            const user = log.user.includes("jordan.kim") || log.user.includes("admin@") ? fallbackEmail : log.user;
+            csvRows.push([log.id, log.time, `"${log.event}"`, user, log.ip, log.type].join(','));
+        });
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'audit_logs.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    };
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "2rem", maxWidth: 1000 }}>
@@ -48,7 +66,7 @@ export default function AuditLogPage() {
                     <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "#F8FAFC", letterSpacing: "-0.02em", marginBottom: "0.375rem" }}>Audit Log</h1>
                     <p style={{ color: "#64748B", fontSize: "0.875rem" }}>Immutable record of all system, data, and authentication events.</p>
                 </div>
-                <button style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.75rem", color: "#F8FAFC", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", transition: "all .2s" }}>
+                <button onClick={handleExportCSV} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1rem", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "0.75rem", color: "#F8FAFC", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", transition: "all .2s" }}>
                     <Download size={14} /> Export CSV
                 </button>
             </div>
@@ -65,9 +83,21 @@ export default function AuditLogPage() {
                         style={{ width: "100%", padding: "0.75rem 1rem 0.75rem 2.5rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.75rem", color: "#F8FAFC", fontSize: "0.875rem", outline: "none" }}
                     />
                 </div>
-                <button style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1.25rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.75rem", color: "#CBD5E1", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer" }}>
-                    <Filter size={14} /> Filter
-                </button>
+                <div style={{ position: "relative" }}>
+                    <Filter size={14} color="#CBD5E1" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+                    <select
+                        value={filterType}
+                        onChange={(e) => setFilterType(e.target.value)}
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1.25rem 0.625rem 2.5rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.75rem", color: "#CBD5E1", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", appearance: "none", outline: "none", minWidth: 140 }}
+                    >
+                        <option value="all" style={{ background: "#1E293B", color: "#CBD5E1" }}>All Types</option>
+                        <option value="system" style={{ background: "#1E293B", color: "#CBD5E1" }}>System</option>
+                        <option value="data" style={{ background: "#1E293B", color: "#CBD5E1" }}>Data</option>
+                        <option value="auth" style={{ background: "#1E293B", color: "#CBD5E1" }}>Auth</option>
+                        <option value="settings" style={{ background: "#1E293B", color: "#CBD5E1" }}>Settings</option>
+                        <option value="security" style={{ background: "#1E293B", color: "#CBD5E1" }}>Security</option>
+                    </select>
+                </div>
             </div>
 
             {/* Table */}

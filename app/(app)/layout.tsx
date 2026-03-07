@@ -25,6 +25,7 @@ import {
     LogOut,
 } from "lucide-react";
 import { ModernLogo } from "../components/ModernLogo";
+import toast from "react-hot-toast";
 
 const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: <BarChart3 size={17} /> },
@@ -47,7 +48,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [notifications, setNotifications] = useState<any[]>([]);
+
+    React.useEffect(() => {
+        const loadNotes = () => {
+            const stored = localStorage.getItem("cs_notifications_v1");
+            if (stored) {
+                setNotifications(JSON.parse(stored));
+            } else {
+                const initial = [
+                    { id: "msg_1", type: "invite", sender: "admin@enterprise.com", workspace: "Engineering Cost Workspace", time: "Just now", read: false },
+                    { id: "msg_2", type: "system", text: "EC2 Analysis Complete. $1,200/mo in potential savings identified.", time: "2 hours ago", read: false }
+                ];
+                setNotifications(initial);
+                localStorage.setItem("cs_notifications_v1", JSON.stringify(initial));
+            }
+        };
+        loadNotes();
+        window.addEventListener("notifications_update", loadNotes);
+        return () => window.removeEventListener("notifications_update", loadNotes);
+    }, []);
+
+    const handleAction = (id: string, actionName: string) => {
+        if (actionName === "accept") toast.success("Invitation accepted!");
+        if (actionName === "decline") toast.success("Invitation declined.");
+        const newNotifs = notifications.filter(n => n.id !== id);
+        setNotifications(newNotifs);
+        localStorage.setItem("cs_notifications_v1", JSON.stringify(newNotifs));
+    };
+
+    const markAllRead = () => {
+        const newNotifs = notifications.map(n => ({ ...n, read: true }));
+        setNotifications(newNotifs);
+        localStorage.setItem("cs_notifications_v1", JSON.stringify(newNotifs));
+        toast.success("All notifications marked as read");
+    };
+
+    const unreadCount = notifications.filter(n => !n.read).length;
     const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
@@ -303,10 +342,55 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", padding: "0.3rem 0.875rem", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 999, fontSize: "0.65rem", fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: "#34d399" }}>
                             <ShieldCheck size={11} /> SOC2 Active
                         </div>
-                        <button style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", position: "relative", padding: 6 }}>
-                            <Bell size={19} />
-                            <span style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, background: "#6366f1", borderRadius: "50%", border: "2px solid #030303" }} />
-                        </button>
+                        <div style={{ position: "relative" }}>
+                            <button onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", position: "relative", padding: 6 }}>
+                                <Bell size={19} />
+                                {unreadCount > 0 && <span style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, background: "#6366f1", borderRadius: "50%", border: "2px solid #030303" }} />}
+                            </button>
+                            {isNotificationsOpen && (
+                                <div style={{ position: "absolute", top: "calc(100% + 0.5rem)", right: 0, width: 320, background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "1rem", boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden", zIndex: 50 }}>
+                                    <div style={{ padding: "1rem", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <h3 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#F8FAFC" }}>Notifications</h3>
+                                        <span onClick={markAllRead} style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: 600, cursor: "pointer" }}>Mark all as read</span>
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", maxHeight: 400, overflowY: "auto" }}>
+                                        {notifications.length === 0 ? (
+                                            <div style={{ padding: "2rem", textAlign: "center", color: "#64748B", fontSize: "0.8rem" }}>No new notifications.</div>
+                                        ) : notifications.map(notif => (
+                                            <div key={notif.id} style={{ padding: "1rem", borderBottom: "1px solid rgba(255,255,255,0.03)", background: notif.read ? "transparent" : "rgba(99,102,241,0.05)", cursor: "pointer", transition: "background .2s" }} onMouseEnter={e => e.currentTarget.style.background = notif.read ? "rgba(255,255,255,0.02)" : "rgba(99,102,241,0.1)"} onMouseLeave={e => e.currentTarget.style.background = notif.read ? "transparent" : "rgba(99,102,241,0.05)"}>
+                                                <div style={{ display: "flex", gap: "0.75rem" }}>
+                                                    {notif.type === "invite" ? (
+                                                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#818CF8" }}><Users size={16} /></div>
+                                                    ) : (
+                                                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#34D399" }}><Activity size={16} /></div>
+                                                    )}
+
+                                                    <div>
+                                                        {notif.type === "invite" ? (
+                                                            <>
+                                                                <p style={{ fontSize: "0.8rem", color: "#E2E8F0", marginBottom: 4, lineHeight: 1.4 }}>
+                                                                    <span style={{ fontWeight: 700, color: "#fff" }}>{notif.sender}</span> invited you to join the <span style={{ fontWeight: 700, color: "#fff" }}>{notif.workspace}</span>
+                                                                </p>
+                                                                <p style={{ fontSize: "0.7rem", color: "#64748B", marginBottom: 8 }}>{notif.time}</p>
+                                                                <div style={{ display: "flex", gap: "0.5rem" }}>
+                                                                    <button onClick={() => handleAction(notif.id, 'accept')} style={{ padding: "0.3rem 0.75rem", borderRadius: "0.5rem", background: "#6366f1", color: "#fff", border: "none", fontSize: "0.7rem", fontWeight: 600, cursor: "pointer" }}>Accept</button>
+                                                                    <button onClick={() => handleAction(notif.id, 'decline')} style={{ padding: "0.3rem 0.75rem", borderRadius: "0.5rem", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#94A3B8", fontSize: "0.7rem", fontWeight: 600, cursor: "pointer" }}>Decline</button>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <p style={{ fontSize: "0.8rem", color: "#E2E8F0", marginBottom: 4, lineHeight: 1.4 }}>{notif.text}</p>
+                                                                <p style={{ fontSize: "0.7rem", color: "#64748B" }}>{notif.time}</p>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <button style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 6 }}>
                             <HelpCircle size={19} />
                         </button>
