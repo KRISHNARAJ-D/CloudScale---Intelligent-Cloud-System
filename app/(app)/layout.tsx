@@ -178,18 +178,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                 </div>
 
-                {/* Upgrade Banner */}
-                {sidebarOpen && (
-                    <div style={{ padding: "1rem", flexShrink: 0 }}>
-                        <div style={{ padding: "1.125rem", borderRadius: "1.125rem", background: "linear-gradient(135deg,rgba(79,70,229,0.3),rgba(124,58,237,0.3))", border: "1px solid rgba(99,102,241,0.25)", position: "relative", overflow: "hidden" }}>
-                            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#fff", marginBottom: "0.25rem" }}>Team Plan</p>
-                            <p style={{ fontSize: "0.7rem", color: "#a5b4fc", marginBottom: "0.875rem", lineHeight: 1.5 }}>Unlock live monitoring<br />& team invite system.</p>
-                            <Link href="/pricing" onClick={() => posthog.capture("upgrade_intent", { position: "sidebar_banner" })} style={{ display: "block", width: "100%", padding: "0.5rem", background: "rgba(255,255,255,0.15)", borderRadius: "0.625rem", textAlign: "center", fontSize: "0.75rem", fontWeight: 700, color: "#fff", textDecoration: "none", transition: "background .2s", cursor: "pointer" }}>
-                                Upgrade Free →
-                            </Link>
-                        </div>
-                    </div>
-                )}
 
                 {/* Account */}
                 <div style={{ padding: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>

@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { Download, Search, Filter, Shield, Activity, HardDrive, Key, UserPlus } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 
 export default function AuditLogPage() {
+    const { user: clerkUser } = useUser();
+    const fallbackEmail = clerkUser?.primaryEmailAddress?.emailAddress || "user@example.com";
     const [search, setSearch] = useState("");
     const [logs, setLogs] = useState<any[]>([]);
 
@@ -56,7 +59,7 @@ export default function AuditLogPage() {
                     <Search size={16} color="#64748B" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)" }} />
                     <input
                         type="text"
-                        placeholder="Search events, users, or IPs..."
+                        placeholder="Search events or users..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         style={{ width: "100%", padding: "0.75rem 1rem 0.75rem 2.5rem", background: "#1E293B", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "0.75rem", color: "#F8FAFC", fontSize: "0.875rem", outline: "none" }}
@@ -77,7 +80,6 @@ export default function AuditLogPage() {
                                 <th style={{ padding: "1rem 1.5rem", fontSize: "0.7rem", fontWeight: 700, color: "#94A3B8", letterSpacing: "0.06em", textTransform: "uppercase" }}>Timestamp</th>
                                 <th style={{ padding: "1rem 1.5rem", fontSize: "0.7rem", fontWeight: 700, color: "#94A3B8", letterSpacing: "0.06em", textTransform: "uppercase" }}>Activity</th>
                                 <th style={{ padding: "1rem 1.5rem", fontSize: "0.7rem", fontWeight: 700, color: "#94A3B8", letterSpacing: "0.06em", textTransform: "uppercase" }}>User / Actor</th>
-                                <th style={{ padding: "1rem 1.5rem", fontSize: "0.7rem", fontWeight: 700, color: "#94A3B8", letterSpacing: "0.06em", textTransform: "uppercase" }}>IP Address</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -97,12 +99,13 @@ export default function AuditLogPage() {
                                             <span style={{ fontSize: "0.875rem", color: "#F8FAFC", fontWeight: 500 }}>{log.event}</span>
                                         </div>
                                     </td>
-                                    <td style={{ padding: "1rem 1.5rem", fontSize: "0.875rem", color: "#CBD5E1" }}>{log.user}</td>
-                                    <td style={{ padding: "1rem 1.5rem", fontSize: "0.8rem", color: "#64748B", fontFamily: "monospace" }}>{log.ip}</td>
+                                    <td style={{ padding: "1rem 1.5rem", fontSize: "0.875rem", color: "#CBD5E1" }}>
+                                        {log.user.includes("jordan.kim") || log.user.includes("admin@") ? fallbackEmail : log.user}
+                                    </td>
                                 </tr>
                             ))}
                             {filteredLogs.length === 0 && (
-                                <tr><td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "#64748B", fontSize: "0.9rem" }}>No matching events found.</td></tr>
+                                <tr><td colSpan={4} style={{ padding: "3rem", textAlign: "center", color: "#64748B", fontSize: "0.9rem" }}>No matching events found.</td></tr>
                             )}
                         </tbody>
                     </table>
