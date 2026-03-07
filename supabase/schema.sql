@@ -72,32 +72,41 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- === RLS POLICIES (Multi-tenant isolation) ===
 
--- Users can only see their own profile
-CREATE POLICY "Users can view own profile" 
-ON public.users FOR SELECT 
+-- 1. USERS: Allow users to manage their own profile
+DROP POLICY IF EXISTS "Users can view own profile" ON public.users;
+CREATE POLICY "Users can manage own profile" 
+ON public.users FOR ALL 
 USING (auth.uid()::text = clerk_id);
 
--- Analyses isolation
+-- 2. ANALYSES: Allow users to manage their own analyses
+DROP POLICY IF EXISTS "Users can manage own analyses" ON public.analyses;
 CREATE POLICY "Users can manage own analyses" 
 ON public.analyses FOR ALL 
-USING (auth.uid()::text = user_id);
+USING (auth.uid()::text = user_id)
+WITH CHECK (auth.uid()::text = user_id);
 
--- Policies isolation
+-- 3. POLICIES: Allow users to manage their own policies
+DROP POLICY IF EXISTS "Users can manage own policies" ON public.policies;
 CREATE POLICY "Users can manage own policies" 
 ON public.policies FOR ALL 
-USING (auth.uid()::text = user_id);
+USING (auth.uid()::text = user_id)
+WITH CHECK (auth.uid()::text = user_id);
 
--- Savings history isolation
-CREATE POLICY "Users can view own savings" 
-ON public.savings_history FOR SELECT 
-USING (auth.uid()::text = user_id);
+-- 4. SAVINGS HISTORY: Allow users to manage their own savings data
+DROP POLICY IF EXISTS "Users can view own savings" ON public.savings_history;
+CREATE POLICY "Users can manage own savings" 
+ON public.savings_history FOR ALL 
+USING (auth.uid()::text = user_id)
+WITH CHECK (auth.uid()::text = user_id);
 
--- Audit logs (Read only for users)
-CREATE POLICY "Users can view own audit logs" 
-ON public.audit_logs FOR SELECT 
-USING (auth.uid()::text = user_id);
+-- 5. AUDIT LOGS: Allow users to insert and view their own logs
+DROP POLICY IF EXISTS "Users can view own audit logs" ON public.audit_logs;
+CREATE POLICY "Users can manage own audit logs" 
+ON public.audit_logs FOR ALL 
+USING (auth.uid()::text = user_id)
+WITH CHECK (auth.uid()::text = user_id);
 
 -- === REAL-TIME SUBSCRIPTIONS ===
--- Enable replication for specific tables to push live dashboard updates
 ALTER PUBLICATION supabase_realtime ADD TABLE public.savings_history;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.analyses;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.policies;
