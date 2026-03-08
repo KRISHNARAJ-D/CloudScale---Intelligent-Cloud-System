@@ -26,8 +26,12 @@ export default function ProfilePage() {
             {/* Hero */}
             <div style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08))", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "1.5rem", padding: "2.5rem 2rem", display: "flex", alignItems: "center", gap: "2rem", flexWrap: "wrap" }}>
                 <div style={{ position: "relative" }}>
-                    <div style={{ width: 88, height: 88, borderRadius: "1.5rem", background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", fontWeight: 900, color: "#fff" }}>
-                        {user?.firstName?.[0] || "C"}
+                    <div style={{ width: 88, height: 88, borderRadius: "1.5rem", background: "linear-gradient(135deg,#6366F1,#8B5CF6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2rem", fontWeight: 900, color: "#fff", overflow: "hidden" }}>
+                        {user?.imageUrl ? (
+                            <img src={user.imageUrl} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                            user?.firstName?.[0] || "C"
+                        )}
                     </div>
                     <div style={{ position: "absolute", bottom: -4, right: -4, width: 24, height: 24, borderRadius: "50%", background: "#10B981", border: "3px solid #0F172A" }} />
                 </div>
